@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>Family-tree</title>
+	<div th:fragment="family-tree-css">
+	<link rel="stylesheet" th:href='@{/css/jquery-ui-1.10.2.custom.css}'/>
+	<link th:href='@{/css/primitives.latest.css?3710}' media="screen" rel="stylesheet" type="text/css" />
+	
+<style type="text/css">
+
+.table-user-information > tbody > tr {
+    border-top: 1px solid rgb(221, 221, 221);
+}
+
+.table-user-information > tbody > tr:first-child {
+    border-top: 0;
+}
+
+
+.table-user-information > tbody > tr > td {
+    border-top: 0;
+    font-size: 13px;
+}
+.toppad
+{
+	margin-top:20px;
+}
+	</style>
+	</div>
+	
+</head>
+<body>
+<div th:fragment="family-tree">
+<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-8 col-lg-8 nopadding">
+				<div id="btn50">50%</div>
+				<div id="btn80">80%</div>
+				<div id="btn100">100%</div>
+				<div id="btn130">130%</div>
+				<div id="orgdiagram"  style="height: 480px; overflow: hidden; border-style: dotted; border-width: 1px;"></div>
+			</div>
+			<div class="col-md-4 col-lg-4 nopadding">
+				<div class="panel panel-info">
+		            <div class="panel-heading">
+		              <h4 class="panel-title" th:text="${profile.profileName}">full Name here</h4>
+		            </div>
+		            <div class="panel-body">
+		              <div class="row">
+			              	<div class=" col-md-12 col-lg-12 "> 
+			                  <table class="table table-user-information">
+			                    <tbody>
+			                      <tr>
+			                      	<td><img alt="User Pic" th:src="@{/images/male.png}" src="/images/male.png" class="img-circle img-responsive" width="50px"></img></td>
+			                      </tr>
+                                  <tr>
+			                        <td>Gender</td>
+			                        <td th:text="${profile.gender}">Female</td>
+			                      </tr>
+			                      <tr>
+			                        <td>Age</td>
+			                        <td>30</td>
+			                      </tr>
+			                      <tr>
+			                        <td>Date of Birth:</td>
+			                        <td th:text="${profile.dateOfBirth}">06/23/2013</td>
+			                      </tr>
+			                      <tr>
+			                        <td>Anniversary Date</td>
+			                        <td>01/24/1988</td>
+			                      </tr>
+	                              <tr>
+			                        <td>Child Of</td>
+			                        <td>Parent Name goes here</td>
+			                      </tr>
+			                      <tr>
+			                        <td>Marital status</td>
+			                        <td>Married</td>
+			                      </tr>
+	                              <tr>
+			                        <td>No. of Children</td>
+			                        <td>4</td>
+			                      </tr>
+			                      <tr>
+			                        <td>Phone Number</td>
+			                        <td>
+			                        	123-4567-890(Landline)<br></br>
+			                        	555-4567-890(Mobile)
+			                        </td>
+			                      </tr>
+			                    </tbody>
+			                  </table>
+			                </div>
+			          </div>
+			        </div>
+			        <div class="panel-footer">
+			        </div>
+			    </div>
+			</div>
+		</div>
+	</div>
+	<div id="create-Profile-form" title="Create new user">
+		<p class="validateTips">All form fields are required.</p>
+		
+		
+		<form id="add-profile" th:object="${profile}">
+			<table>
+				<tr>
+					<td>
+					</td>
+					<td>
+						<input type="hidden" id="in_parentId" th:field="*{parentId}"></input>
+					</td> 
+				</tr>
+				<tr>
+					<td>
+						Full Name
+					</td>
+					<td>
+						<input type="text" id="in_profileName" th:field="*{profileName}"/>
+					</td> 
+				</tr>
+				<tr>
+					<td>
+						First Name
+					</td>
+					<td>
+					<input type="text" id="in_firstName" th:field="*{firstName}"/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Last Name
+					</td>
+					<td>
+						<input type="text" id="in_lastName" th:field="*{lastName}"/>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						Gender
+					</td>
+					<td>
+						<select id="in_gender" th:field="*{gender}" >
+							<option th:value="male" th:text="Male">Male</option>
+							<option th:value="female" th:text="Fe-Male">Fe-Male</option>			
+						</select>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>Date Of Birth</td>
+					<td>
+						<input size="14" type="text" value="" id="id_dob" th:field="*{dateOfBirth}" />
+					</td>
+				</tr>
+			</table>	
+		</form>
+	</div>
+	<script type="text/javascript" th:src='@{/js/bootstrap.min.js}'></script>
+	<script type="text/javascript" th:src='@{/js/jquery-1.9.1.js}'></script>
+	<script type="text/javascript" th:src='@{/js/jquery-ui-1.10.2.custom.min.js}'></script>
+	<script type="text/javascript" th:src='@{/js/primitives.min.js?3710}'></script>
+	<script th:inline="javascript">
+	/*<![CDATA[*/
+jQuery(document).ready(function () {
+	var dialog, form;
+	var treeNodes = [[${ft_items}]];
+    
+    var options = new primitives.orgdiagram.Config();
+	var items = [];
+	var buttons = [];
+	
+	$('form').on('submit', function(e){
+		e.preventDefault();
+		return false;
+	});
+	
+	$('#id_dob').datepicker({
+		dateFormat: 'dd-mm-yy'
+	});
+	
+	dialog = $("#create-Profile-form").dialog({
+		autoOpen: false,
+		height: 400,
+		width: 350,
+		modal: true,
+		buttons: {
+	        "Create an Profile": function(){
+	        	var profileData = {};
+	        	profileData.profileName = $("#in_profileName").val();
+	        	profileData.firstName = $("#in_firstName").val();
+	        	profileData.lastName = $("#in_lastName").val();
+	        	profileData.gender = $("#in_gender").val(),
+	        	profileData.parentId = $("#in_parentId").val();
+	        	profileData.dateOfBirth = $("#id_dob").val();
+	        	var saveProfileUrl = /*[[@{/profile/save}]]*/ 'profile/save';
+				alert('URL::'+saveProfileUrl+'\nDOB:'+profileData.dateOfBirth);
+	        	$.ajax({
+					type: "POST",
+					url: saveProfileUrl,
+					async: true,
+					headers: {
+	                    'Accept': 'application/json',
+	                    'Content-Type': 'application/json'
+	                },
+					data: JSON.stringify(profileData),
+					success: function(result){
+						console.log(result);
+						dialog.dialog("close");
+						items = treeNodesToItems(JSON.stringify(result.object));
+						updateTreeWithItems(items);
+						$("#add-profile").trigger("reset");
+					},
+					error: function(jqXhr, textStatus, errorThrown){
+						console.log(textStatus);
+						 alert('error:' +textStatus + '\n:' +errorThrown);
+					}
+				});
+				dialog.dialog( "close" );
+	        },
+	        Cancel: function() {
+	          dialog.dialog( "close" );
+	        }
+	      },
+	      close: function() {
+	        //form[ 0 ].reset();
+	        //allFields.removeClass( "ui-state-error" );
+	        $("#add-profile").trigger("reset");
+	      }
+	});
+	
+	dialog.dialog("close");
+	
+	buttons.push(new primitives.orgdiagram.ButtonConfig("add", "ui-icon-person", "Add"));
+	buttons.push(new primitives.orgdiagram.ButtonConfig("delete", "ui-icon-close", "Delete"));
+	        	
+	items = treeNodesToItems(treeNodes);
+	
+	options.pageFitMode = primitives.common.PageFitMode.None;
+	options.items = items;
+	options.buttons = buttons;			
+	options.cursorItem = 0;
+	options.hasSelectorCheckbox = primitives.common.Enabled.False;
+	options.onButtonClick = function (e, data) {
+		switch (data.name) {
+			case "delete": 
+					if(data.context.parent==null || data.context.parent==''){
+						alert('you can not delete the parent node')
+					}
+					else{
+						var deleteProfileUrl = /*[[@{/profile/delete/}]]*/ 'profile/delete/';
+						$.ajax({
+							type: "DELETE",
+							url: deleteProfileUrl + data.context.id,
+							//dataType: "json",
+							headers: {
+		                	    'Accept': 'application/json',
+		                    	'Content-Type': 'application/json'
+		                	} ,
+							success: function(result){
+								items = treeNodesToItems(JSON.stringify(result.object));
+								updateTreeWithItems(items);
+								console.log(result);
+							},
+							error: function(jqXhr, textStatus, errorThrown){
+								console.log(textStatus);
+								alert('error:' +textStatus + '\n:' +errorThrown);
+							}
+						});
+					}
+				break;
+			case "add": 
+				/* get items collection */
+				//var items = jQuery("#orgdiagram").orgDiagram("option", "items");
+				/* create new item */
+				$('#in_parentId').val(data.context.id);
+				dialog.dialog( "open" );
+				break;
+		}
+	};
+	jQuery("#orgdiagram").orgDiagram(options);
+
+	$("#btn50").button().click(function () { onScale(0.5); });
+	$("#btn80").button().click(function () { onScale(.8); });
+	$("#btn100").button().click(function () { onScale(1); });
+	$("#btn130").button().click(function () { onScale(1.3); });
+});
+	      
+function treeNodesToItems(treeNodes){
+	var itemsToIterate = JSON.parse(treeNodes);
+	var new_items = [];
+	for(var i=0; i<itemsToIterate.length; i++){
+		new_items.push(
+				new primitives.orgdiagram.ItemConfig({
+					id: itemsToIterate[i].id,
+					parent: itemsToIterate[i].parent,
+					title: itemsToIterate[i].title,
+					description: itemsToIterate[i].description,
+					image: "../images/"+itemsToIterate[i].gender+".png"
+				}));
+	}
+	return new_items;
+}
+
+function updateTreeWithItems(ft_items){
+	jQuery("#orgdiagram").orgDiagram({
+		items: ft_items
+	});
+	jQuery("#orgdiagram").orgDiagram("update", /*Refresh: use fast refresh to update chart*/ primitives.orgdiagram.UpdateMode.Refresh);
+}
+
+
+function onScale(scale) {
+	if (scale != null) {
+		jQuery("#orgdiagram").orgDiagram({ scale: scale });
+	}
+	jQuery("#orgdiagram").orgDiagram("update", primitives.orgdiagram.UpdateMode.Refresh);
+}
+
+	 /*]]>*/
+	</script>
+</div>
+		
+</body>
+</html>

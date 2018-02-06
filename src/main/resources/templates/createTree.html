@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Create Family Tree</title>
+	<div th:replace="header :: header-css" ></div>
+	<link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui-1.10.2.custom.css}" />
+</head>
+<body>
+	<div th:replace="header :: header" ></div>
+		<div class="container tabs-wrap">
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="active" role="presentation">
+      <a role="tab" aria-expanded="true" aria-controls="billing" href="#billing" data-toggle="tab">Family Tree</a>
+    </li>
+    <li>
+      <a role="tab" aria-expanded="false" aria-controls="shipping" href="#shipping" data-toggle="tab">Root Parent</a>
+    </li>
+  </ul>
+
+
+<form action="/familytree/saveTree" th:action="@{/familytree/saveTree}" th:object="${familyTree}" method="post">
+	<div class="tab-content">
+		<div class="tab-pane active" id="billing" role="tabpanel">
+	    	<h3>Family Tree Name</h3>
+    		<input type="text" id="in_familyTreeName" th:field="*{familyTreeName}"/>
+	    	<a class="btn btn-primary continue">Continue</a>
+	  	</div>
+	  	<div class="tab-pane" id="shipping" role="tabpanel">
+	    	<h3>Root Parent Profile</h3>
+	    		<table>
+					<tr>
+						<td>
+						</td>
+						<td>
+							<input type="hidden" id="in_parentId" th:field="*{profile.parentId}"></input>
+						</td> 
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					<tr>
+						<td>
+							Full Name
+						</td>
+						<td>
+							<input type="text" id="in_profileName" th:field="*{profile.profileName}"/>
+						</td> 
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					<tr>
+						<td>
+							First Name
+						</td>
+						<td>
+						<input type="text" id="in_firstName" th:field="*{profile.firstName}"/>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					<tr>
+						<td>
+							Last Name
+						</td>
+						<td>
+							<input type="text" id="in_lastName" th:field="*{profile.lastName}"/>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					<tr>
+						<td>
+							Gender
+						</td>
+						<td>
+							<select id="in_gender" th:field="*{profile.gender}" >
+								<option th:value="male" th:text="Male">Male</option>
+								<option th:value="female" th:text="Fe-Male">Fe-Male</option>			
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					<tr>
+					<td>Date Of Birth</td>
+					<td>
+						<input size="12" type="text" value="" id="id_dob" th:field="*{profile.dateOfBirth}" />
+					</td>
+				</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					
+				</table>
+	    		<a class="btn btn-primary back">Go Back</a>
+			    <input type="submit" value="Create Tree" />
+			</div>
+		</div>  
+	</form>
+</div>
+
+	<script th:src="@{/js/jquery-ui-1.10.2.custom.min.js}"></script>
+	<script type="text/javascript">
+		
+	$('.continue').click(function(){
+		  $('.nav-tabs > .active').next('li').find('a').trigger('click');
+	});
+
+	$('.back').click(function(){
+		  $('.nav-tabs > .active').prev('li').find('a').trigger('click');
+	});
+	
+	$('#id_dob').datepicker({
+		altFormat: "dd-MM-yyyy"
+	});
+
+	</script>
+	
+</body>
+</html>

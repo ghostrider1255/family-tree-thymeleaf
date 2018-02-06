@@ -1,0 +1,16 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+layout:decorate="~{layout}">
+<head>
+<title>Family-tree</title>
+	<div th:replace="header :: header-css" ></div>
+	<div th:replace="familytree :: family-tree-css" ></div>
+</head>
+<body>
+	<div th:replace="header :: header" ></div>
+	
+	<div th:replace="familytree :: family-tree" ></div>
+</body>
+</html>

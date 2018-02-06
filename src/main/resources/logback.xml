@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+<property name="logPattern" value="%d %-5level %logger{35} - %msg%n"/>
+<property name="logEncoding" value="UTF-8"/>
+<property name="logDirectory" value="log"/>
+
+<timestamp key="myTimestamp" timeReference="contextBirth" datePattern="yyyyMMdd'_'HHmmss"/>
+
+<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+	<layout class="ch.qos.logback.classic.PatternLayout">
+		<pattern>
+			<!-- %d{yyyy-MM-dd HH:mm:ss} [%thread] ${logPattern} -->
+			[%thread] ${logPattern}
+		</pattern>
+	</layout>
+</appender>
+
+<appender name="fileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${logDirectory}/familyTreeApplication_${myTimestamp}.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${logDirectory}/archieved/familyTreeApplication_%d{yyyyMMdd}.%i.log</fileNamePattern>
+        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+            <maxFileSize>30MB</maxFileSize>
+        </timeBasedFileNamingAndTriggeringPolicy>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <charset>${logEncoding}</charset>
+        <pattern>${logPattern}</pattern>
+    </encoder>
+</appender>
+
+	<logger name="org.springframework" level="INFO" additivity="false">
+		<appender-ref ref="console"/>
+		<appender-ref ref="fileAppender"/>
+	</logger>
+	<logger name="org.hibernate" level="INFO" additivity="false">
+		<appender-ref ref="console"/>
+		<appender-ref ref="fileAppender"/>
+	</logger>
+	<logger name="com.sreepapers.spring.familytree" level="DEBUG" additivity="false">
+		<appender-ref ref="console"/>
+		<appender-ref ref="fileAppender"/>
+	</logger>
+
+	<root level="INFO">
+    	<appender-ref ref="console"/>
+    	<appender-ref ref="fileAppender"/>
+	</root>
+</configuration>
