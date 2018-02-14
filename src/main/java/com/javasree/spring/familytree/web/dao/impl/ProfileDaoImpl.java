@@ -1,19 +1,30 @@
 package com.javasree.spring.familytree.web.dao.impl;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.javasree.spring.familytree.model.CustomeEventCalendar;
+import com.javasree.spring.familytree.model.Event;
+import com.javasree.spring.familytree.model.profile.CustomeProfile;
 import com.javasree.spring.familytree.model.profile.Profile;
 import com.javasree.spring.familytree.web.dao.ProfileDao;
 import com.javasree.spring.familytree.web.jpa.ProfileRepository;
+import com.javasree.spring.familytree.web.utils.TreeUtils;
 
 @Service
 public class ProfileDaoImpl implements ProfileDao{
 
+	private static final Logger logger = LoggerFactory.getLogger(ProfileDaoImpl.class);
 	@Autowired
 	private ProfileRepository profileRepository;
+	
+	private static final String STANDARD_UTILS_DATE_FORMAT="yyyyMMdd";
 	
 	public ProfileDaoImpl(){
 		super();
@@ -59,6 +70,29 @@ public class ProfileDaoImpl implements ProfileDao{
 	}
 
 	@Override
+	public List<Profile> findAllChildren(Long profileId){
+		List<Profile> childrenList = new ArrayList<>();
+		if(profileId != null){
+			Profile currentProfile = this.findProfile(profileId);
+			List<Profile> children = this.findByParentId(profileId);
+			for(Profile child: children){
+				if(profileRepository.existsByParentId(child.getProfileId())){
+					children = findAllChildren(child.getProfileId());
+				}
+				else{
+					childrenList.add(child);
+				}
+			}
+			if(!children.isEmpty()){
+				childrenList.addAll(children);
+			}
+			childrenList.add(currentProfile);
+		}
+		return childrenList;
+	}
+	
+	
+	@Override
 	public Profile getPraent(Profile currentProfile) {
 		Profile parentProfile = null;
 		if(currentProfile!=null && currentProfile.getParentId()!=null){
@@ -74,5 +108,76 @@ public class ProfileDaoImpl implements ProfileDao{
 			return parentProfile;
 		}
 		return parentProfile;
+	}
+	
+	@Override
+	public CustomeProfile getCustomeProfile(Profile profile){
+		CustomeProfile customeProfile = new CustomeProfile();
+		customeProfile.setProfileId(profile.getProfileId());
+		customeProfile.setProfileName(profile.getProfileName());
+		customeProfile.setFirstName(profile.getFirstName());
+		customeProfile.setLastName(profile.getLastName());
+		customeProfile.setDateOfBirth(profile.getDateOfBirth());
+		customeProfile.setGender(profile.getGender());
+		customeProfile.setAge(Long.valueOf(TreeUtils.getAge(profile.getDateOfBirth())));
+		
+		customeProfile.setMaritalStatus(profile.getMaritalStatus().toUpperCase());
+		if(!profile.getMaritalStatus().equalsIgnoreCase("single")){
+			if(profile.getMarriageAnniversary()!=null){
+				customeProfile.setMarriageAnniversary(profile.getMarriageAnniversary());
+				customeProfile.setNumberOfCelebratedAnniversaries(Long.valueOf(TreeUtils.getAge(profile.getMarriageAnniversary())));
+			}
+			
+			List<Profile> childrenList = profileRepository.findByParentId(profile.getProfileId());
+			customeProfile.setNumberOfChildren(Long.valueOf(childrenList.size()));
+		}
+		
+		if(profile.getParentId()!=null){
+			customeProfile.setChildOf(profileRepository.findOne(profile.getParentId()).getProfileName());
+		}
+				
+		return customeProfile;
+	}
+
+	@Override
+	public CustomeEventCalendar getCustomeEventCalender(List<Profile> profiles) {
+		CustomeEventCalendar eventsCalender = new CustomeEventCalendar();
+		Date todayDate = new Date();
+		
+		try {
+			String todayDateAsString = TreeUtils.convertDateToString(todayDate, STANDARD_UTILS_DATE_FORMAT); //default date for the event calender
+			String minDate = TreeUtils.computeMonthStartDate(todayDateAsString); //make current months 1st as the min date
+			String maxDate = TreeUtils.computeEndDate(minDate);//make current month end date as the maxdate
+			
+			eventsCalender.setDefaultDate(TreeUtils.convertToDate(todayDateAsString, STANDARD_UTILS_DATE_FORMAT));
+			eventsCalender.setMinDate(TreeUtils.convertToDate(minDate, STANDARD_UTILS_DATE_FORMAT));
+			eventsCalender.setMaxDate(TreeUtils.convertToDate(maxDate, STANDARD_UTILS_DATE_FORMAT));
+			List<Event> events = new ArrayList<>();
+			for (Profile profile : profiles) {
+				
+				if(profile.getDateOfBirth()!=null && TreeUtils.isEvent((Date)profile.getDateOfBirth().clone())){
+					Event birthDayEvent = new Event();
+					birthDayEvent.setEventDate(profile.getDateOfBirth());
+					birthDayEvent.setNote("it is '" + profile.getProfileName() +"'s BIRTHDAY");
+					events.add(birthDayEvent);
+				}
+				if(profile.getDateOfDeath()!=null && TreeUtils.isEvent((Date)profile.getDateOfDeath().clone())){
+					Event deathAnniversaryEvent = new Event();
+					deathAnniversaryEvent.setEventDate(profile.getDateOfDeath());
+					deathAnniversaryEvent.setNote("it is '" + profile.getProfileName() +"'s DEATH anniversary");
+					events.add(deathAnniversaryEvent);
+				}
+				if(profile.getMarriageAnniversary()!=null && TreeUtils.isEvent((Date)profile.getMarriageAnniversary().clone())){
+					Event marrieagehAnniversaryEvent = new Event();
+					marrieagehAnniversaryEvent.setEventDate(profile.getMarriageAnniversary());
+					marrieagehAnniversaryEvent.setNote("it is '" + profile.getProfileName() +"'s MARRIAGE anniversary");
+					events.add(marrieagehAnniversaryEvent);
+				}
+			}
+			eventsCalender.setEvents(events);
+		} catch (Exception e) {
+			logger.warn(e.getMessage());
+		}
+		return eventsCalender;
 	}
 }

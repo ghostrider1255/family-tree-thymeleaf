@@ -10,6 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.javasree.spring.familytree.web.utils.CustomeDateDeserializer;
 
@@ -30,7 +32,16 @@ public class Profile implements Serializable{
 	private String lastName;
 	private String gender;
 	@JsonDeserialize(using = CustomeDateDeserializer.class)
+	@DateTimeFormat(pattern="dd-mm-yyyy")
 	private Date dateOfBirth;
+	@JsonDeserialize(using = CustomeDateDeserializer.class)
+	@DateTimeFormat(pattern="dd-mm-yyyy")
+	private Date dateOfDeath;
+	@JsonDeserialize(using = CustomeDateDeserializer.class)
+	@DateTimeFormat(pattern="dd-mm-yyyy")
+	private Date marriageAnniversary;
+	private String maritalStatus;
+	
 	private Long parentId;
 	
 	public Long getProfileId() {
@@ -57,6 +68,19 @@ public class Profile implements Serializable{
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
+	public Date getMarriageAnniversary() {
+		return marriageAnniversary;
+	}
+	public void setMarriageAnniversary(Date marriageAnniversary) {
+		this.marriageAnniversary = marriageAnniversary;
+	}
+	public Date getDateOfDeath() {
+		return dateOfDeath;
+	}
+	public void setDateOfDeath(Date dateOfDeath) {
+		this.dateOfDeath = dateOfDeath;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -127,6 +151,12 @@ public class Profile implements Serializable{
 	}
 	public void setDateOfBirth(Date dateOfBirth) {
 		this.dateOfBirth = dateOfBirth;
+	}
+	public String getMaritalStatus() {
+		return maritalStatus;
+	}
+	public void setMaritalStatus(String maritalStatus) {
+		this.maritalStatus = maritalStatus;
 	}
 	
 	/*@Override

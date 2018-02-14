@@ -1,8 +1,7 @@
 package com.javasree.spring.familytree.web.dao.impl;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.javasree.spring.familytree.model.profile.FamilyTree;
@@ -20,8 +19,12 @@ public class FamilyTreeDaoImpl implements FamilyTreeDao{
 	}
 	
 	@Override
-	public List<FamilyTree> findAll() {
+	public Iterable<FamilyTree> findAll() {
 		return familyTreeRepository.findAll();
+	}
+	
+	public Iterable<FamilyTree> findAll(Pageable pageble){
+		return familyTreeRepository.findAll(pageble);
 	}
 
 	@Override

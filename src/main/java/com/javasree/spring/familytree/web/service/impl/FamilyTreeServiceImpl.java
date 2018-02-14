@@ -1,8 +1,7 @@
 package com.javasree.spring.familytree.web.service.impl;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.javasree.spring.familytree.model.profile.FamilyTree;
@@ -16,7 +15,7 @@ public class FamilyTreeServiceImpl implements FamilyTreeService{
 	private FamilyTreeDao familyTreeDao;
 	
 	@Override
-	public List<FamilyTree> findAll() {
+	public Iterable<FamilyTree> findAll() {
 		return familyTreeDao.findAll();
 	}
 
@@ -28,6 +27,11 @@ public class FamilyTreeServiceImpl implements FamilyTreeService{
 	@Override
 	public FamilyTree findFamilyTree(Long familyTreeId) {
 		return familyTreeDao.findFamilyTree(familyTreeId);
+	}
+
+	@Override
+	public Iterable<FamilyTree> findAll(Pageable pageble) {
+		return familyTreeDao.findAll(pageble);
 	}
 
 }

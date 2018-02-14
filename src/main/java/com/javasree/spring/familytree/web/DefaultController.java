@@ -4,21 +4,29 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.javasree.spring.familytree.model.CustomeEventCalendar;
+import com.javasree.spring.familytree.model.profile.CustomeProfile;
 import com.javasree.spring.familytree.model.profile.FamilyTree;
 import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.web.dto.PagerDto;
 import com.javasree.spring.familytree.web.dto.TreeNode;
 import com.javasree.spring.familytree.web.service.FamilyTreeService;
 import com.javasree.spring.familytree.web.service.ProfileService;
@@ -29,6 +37,11 @@ public class DefaultController {
 
 	private static final Logger log = LoggerFactory.getLogger(DefaultController.class);
 	
+	private static final int BUTTONS_TO_SHOW = 3;
+    private static final int INITIAL_PAGE = 0;
+    private static final int INITIAL_PAGE_SIZE = 5;
+    private static final int[] PAGE_SIZES = { 5, 10};
+	
 	@Autowired
 	private ProfileService profileService;
 	
@@ -38,40 +51,74 @@ public class DefaultController {
 	
 	@GetMapping("/")
 	public String defaultHome(){
-		return "redirect:home";
+		return "redirect:home?pageSize=1,page=0";
+	}
+	
+	@GetMapping(value = "/customeProfileView/{profileId}")
+	public String getCustomeProfileView(@PathVariable("profileId") String profileId, Model model){
+		if(profileId!=null && profileId.compareToIgnoreCase("null")!=0){
+			Profile profile = profileService.findProfile(Long.valueOf(profileId));
+			CustomeProfile custProf = profileService.getCustomeProfile(profile);
+			model.addAttribute("customeProfile", custProf);
+		}
+		else{
+			model.addAttribute("customeProfile", new CustomeProfile());
+		}
+		return "customeProfileView::cust-profile-view";
 	}
 	
 	@GetMapping(value = "/home", produces = MediaType.APPLICATION_JSON_VALUE)
-	public String home(Model model){
-		List<TreeNode> nodesList = null;
-		nodesList = getNodes();
-		ObjectMapper jsonMapper = new ObjectMapper();
-		try {
-			Map<String,String> menuMap = new HashMap<>();
-			List<FamilyTree> treesList = familyTreeService.findAll();
-			treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
-			if(!menuMap.isEmpty()){
-				model.addAttribute("menuItems", menuMap);
-			}
-			
-			model.addAttribute("ft_items", jsonMapper.writeValueAsString(nodesList));
-			model.addAttribute("profile", new Profile());
-		} catch (JsonProcessingException e) {
-			log.warn(e.getMessage());
+	public String home(@RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page,  Model model){
+		Map<String,String> menuMap = new HashMap<>();
+		Iterable<FamilyTree> treesList = familyTreeService.findAll();
+		treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
+		if(!menuMap.isEmpty()){
+			model.addAttribute("menuItems", menuMap);
 		}
+		
+		int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
+		int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() -1;
+		Page<FamilyTree> treePages = (Page<FamilyTree>) familyTreeService.findAll(new PageRequest(evalPage, evalPageSize));
+		PagerDto pager = new PagerDto(treePages.getTotalPages(), treePages.getNumber(), BUTTONS_TO_SHOW);
+		model.addAttribute("treesList", treePages);
+		model.addAttribute("selectedPageSize", evalPageSize);
+		model.addAttribute("pageSize", PAGE_SIZES);
+		model.addAttribute("pager", pager);
 		return "/home";
+	}
+	
+	@GetMapping(value = "/events", produces = MediaType.APPLICATION_JSON_VALUE)
+	public String events(Model model){
+		Map<String,String> menuMap = new HashMap<>();
+		Iterable<FamilyTree> treesList = familyTreeService.findAll();
+		treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
+		if(!menuMap.isEmpty()){
+			model.addAttribute("menuItems", menuMap);
+		}
+		model.addAttribute("treesList", treesList);
+		treesList.forEach( tree -> {
+			List<Profile> profilesForEvents = profileService.findAllChildren(tree.getProfile().getProfileId());
+			CustomeEventCalendar events= profileService.getCustomeEventCalender(profilesForEvents);
+			model.addAttribute("eventsCalender", events);
+		});
+		return "/events";
 	}
 	
 	@GetMapping(value = "/createtreeform", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String createNewTreeFamily(Model model){
-		FamilyTree familyTree = new FamilyTree();
-		model.addAttribute("familyTree", familyTree);
-		return "/createtree";
+		Map<String,String> menuMap = new HashMap<>();
+		Iterable<FamilyTree> treesList = familyTreeService.findAll();
+		treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
+		if(!menuMap.isEmpty()){
+			model.addAttribute("menuItems", menuMap);
+		}
+		model.addAttribute("familyTree", new FamilyTree());
+		return "/createTree";
 	}
 	
-	@PostMapping(value = "/familytree/saveTree", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
+	@PostMapping(value = "/familytree/saveTree"
 			, produces = MediaType.APPLICATION_JSON_VALUE)
-	public String saveFamilyTree(FamilyTree familyTree, Model model){
+	public String saveFamilyTree(FamilyTree familyTree, BindingResult result, Model model){
 		FamilyTree newFamilyTree = familyTreeService.save(familyTree);
 		return "redirect:/viewfulltree/"+newFamilyTree.getFamilyTreeId();
 	}
@@ -84,14 +131,15 @@ public class DefaultController {
 		ObjectMapper jsonMapper = new ObjectMapper();
 		try {
 			Map<String,String> menuMap = new HashMap<>();
-			List<FamilyTree> treesList = familyTreeService.findAll();
+			Iterable<FamilyTree> treesList = familyTreeService.findAll();
 			treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
 			if(!menuMap.isEmpty()){
 				model.addAttribute("menuItems", menuMap);
 			}
 			
 			model.addAttribute("ft_items", jsonMapper.writeValueAsString(nodesList));
-			model.addAttribute("profile", currentFamilyTree.getProfile());
+			model.addAttribute("profile", new Profile());
+			model.addAttribute("customeProfile", profileService.getCustomeProfile(currentFamilyTree.getProfile()));
 		} catch (JsonProcessingException e) {
 			log.warn(e.getMessage());
 		}
@@ -116,30 +164,4 @@ public class DefaultController {
 		}
 		return nodes;
 	}
-	
-	public List<TreeNode> getNodes(){
-		List<TreeNode> nodes = new ArrayList<>();
-		
-		List<Profile> profiles = profileService.findAll();
-		if(profiles!=null && !profiles.isEmpty()){
-			profiles.forEach( profile -> {
-				TreeNode node = TreeUtils.getTreeNodeFromProfile(profile);
-				nodes.add(node);
-			});
-		}
-		else{
-			Profile rootProfile = new Profile();
-			rootProfile.setParentId(null);
-			rootProfile.setProfileName("Profile full Name");
-			rootProfile.setFirstName("First Name");
-			rootProfile.setLastName("Last Name");
-			rootProfile.setGender("male");
-			Profile newRootProfile = profileService.save(rootProfile);
-			
-			TreeNode node = TreeUtils.getTreeNodeFromProfile(newRootProfile);
-			nodes.add(node);
-		}
-		return nodes;
-	}
-	
 }

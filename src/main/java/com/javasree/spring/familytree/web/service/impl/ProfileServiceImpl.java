@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.javasree.spring.familytree.model.CustomeEventCalendar;
+import com.javasree.spring.familytree.model.profile.CustomeProfile;
 import com.javasree.spring.familytree.model.profile.Profile;
 import com.javasree.spring.familytree.web.dao.impl.ProfileDaoImpl;
 import com.javasree.spring.familytree.web.service.ProfileService;
@@ -48,6 +50,21 @@ public class ProfileServiceImpl implements ProfileService{
 	@Override
 	public Profile getPraent(Profile currentProfile) {
 		return profileDao.getPraent(currentProfile);
+	}
+
+	@Override
+	public CustomeProfile getCustomeProfile(Profile profile) {
+		return profileDao.getCustomeProfile(profile);
+	}
+
+	@Override
+	public List<Profile> findAllChildren(Long profileId) {
+		return profileDao.findAllChildren(profileId);
+	}
+
+	@Override
+	public CustomeEventCalendar getCustomeEventCalender(List<Profile> profiles) {
+		return profileDao.getCustomeEventCalender(profiles);
 	}
 	
 	

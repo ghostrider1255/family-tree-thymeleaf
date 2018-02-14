@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+layout:decorate="~{layout}">
+<head>
+<title>Family-tree</title>
+	<div th:replace="header :: header-css" ></div>
+	<div th:replace="familytree :: family-tree-css" ></div>
+	<link rel="stylesheet" th:href='@{/css/dncalendar-skin.min.css}' />
+</head>
+<body>
+	<div th:replace="header :: header" ></div>
+	
+	<div id="dncalendar-container">
+	</div>
+	
+	<script type="text/javascript" th:src='@{/js/jquery-1.9.1.js}'></script>
+	<script type="text/javascript" th:src='@{/js/dncalendar.min.js}'></script>
+	<script th:inline="javascript">
+	/*<![CDATA[*/
+	 $(document).ready(function() {
+			var my_calendar = $("#dncalendar-container").dnCalendar({
+				minDate: "2018-01-01",
+				maxDate: "2018-04-30",
+				//defaultDate: "2018-02-28",
+				monthNames: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], 
+				monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ],
+				dayNames: [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                dayNamesShort: [ 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sund' ],
+                //dataTitles: { defaultDate: 'default', today : 'Today' },
+                dataTitles: { today : 'Today' },
+                notes: [
+                		{ "date": "2018-02-28", "note": ["Birthday"] },
+                		{ "date": "2018-03-12", "note": ["Anniversary"] }
+                		],
+                showNotes: true,
+                startWeek: 'Sunday',
+                dayClick: function(date, view) {
+                	alert(date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear());
+                }
+			});
+
+			// init calendar
+			my_calendar.build();
+
+			// update calendar
+			// my_calendar.update({
+			// 	minDate: "2016-01-05",
+			// 	defaultDate: "2016-05-04"
+			// });
+		});          
+	           
+	/*]]>*/
+	</script>
+</body>
+</html>

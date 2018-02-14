@@ -101,7 +101,6 @@
 								<option th:value="male" th:text="Male">Male</option>
 								<option th:value="female" th:text="Fe-Male">Fe-Male</option>			
 							</select>
-							
 						</td>
 					</tr>
 					<tr>
@@ -113,11 +112,11 @@
 						</td> 
 					</tr>
 					<tr>
-					<td>Date Of Birth</td>
-					<td>
-						<input size="12" type="text" value="" id="id_dob" th:field="*{profile.dateOfBirth}" />
-					</td>
-				</tr>
+						<td>Date Of Birth</td>
+						<td>
+							<input size="12" type="text" id="id_dob" th:field="*{profile.dateOfBirth}" />
+						</td>
+					</tr>
 					<tr>
 						<td>
 							&nbsp;
@@ -126,7 +125,64 @@
 							&nbsp;
 						</td> 
 					</tr>
-					
+					<tr>
+						<td>is this person still alive</td>
+						<td>
+							<select id="in_alive_yes_no">
+								<option th:value="0" th:text="selectValue">--Yes/No--</option>
+								<option th:value="alive" th:text="Yes">Yes</option>
+								<option th:value="died" th:text="No">No</option>			
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					<tr class="dod_info">
+						<td>Date Of death</td>
+						<td>
+							<input size="12" type="text" id="id_dod" th:field="*{profile.dateOfDeath}" />
+						</td>
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr>
+					<tr>
+						<td>
+							Marital status
+						</td>
+						<td>
+							<select id="in_maritalStatus" th:field="*{profile.maritalStatus}" >
+								<option th:value="single" th:text="Single">Single</option>
+								<option th:value="married" th:text="Married">Married</option>
+								<option th:value="Widow" th:text="Widow">Widow</option>			
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							&nbsp;
+						</td>
+						<td>
+							&nbsp;
+						</td> 
+					</tr> 
+					<tr class="mStatus_info">
+						<td>Marriage Anniversary</td>
+						<td>
+							<input size="12" type="text" id="id_mAnniversary" th:field="*{profile.marriageAnniversary}" />
+						</td>
+					</tr> 
 				</table>
 	    		<a class="btn btn-primary back">Go Back</a>
 			    <input type="submit" value="Create Tree" />
@@ -137,7 +193,30 @@
 
 	<script th:src="@{/js/jquery-ui-1.10.2.custom.min.js}"></script>
 	<script type="text/javascript">
-		
+	
+	$('.mStatus_info').hide();
+	$('.dod_info').hide();
+	
+	$('#in_alive_yes_no').on("change", function(){
+		var selection = $(this).find(':selected').val();
+		if(selection !='alive'){
+			$('.dod_info').show();
+		}
+		else{
+			$('.dod_info').hide();
+		}
+	});
+	
+	$('#in_maritalStatus').on("change",function(){
+		var selection = $(this).find(':selected').val();
+		if(selection == 'single'){
+			$('.mStatus_info').hide();
+		}
+		else{
+			$('.mStatus_info').show();
+		}
+	});
+	
 	$('.continue').click(function(){
 		  $('.nav-tabs > .active').next('li').find('a').trigger('click');
 	});
@@ -147,9 +226,14 @@
 	});
 	
 	$('#id_dob').datepicker({
-		altFormat: "dd-MM-yyyy"
+		dateFormat: 'dd-mm-yy'
 	});
-
+	$('#id_mAnniversary').datepicker({
+		dateFormat: 'dd-mm-yy'
+	});
+	$('#id_dod').datepicker({
+		dateFormat: 'dd-mm-yy'
+	});
 	</script>
 	
 </body>

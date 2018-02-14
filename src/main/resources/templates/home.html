@@ -7,10 +7,91 @@ layout:decorate="~{layout}">
 <title>Family-tree</title>
 	<div th:replace="header :: header-css" ></div>
 	<div th:replace="familytree :: family-tree-css" ></div>
+		
+<style>
+.pagination-centered {
+    text-align: center;
+}
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+.pointer-disabled {
+    pointer-events: none;
+}
+</style>
 </head>
 <body>
 	<div th:replace="header :: header" ></div>
 	
-	<div th:replace="familytree :: family-tree" ></div>
+	<div>
+	<div class="form-group col-md-1">
+				<select class="form-control pagination" id="pageSizeSelect">
+					<option th:each="pageSize: ${pageSize}" th:text="${pageSize}" th:value="${pageSize}"
+					th:selected="${pageSize} == ${selectedPageSize}">
+					</option>
+				</select>
+			</div>
+		<table id="dt_familytrees" class="display" width="80%">
+			<thead>
+				<th>name</th>
+				<th>Parent of the tree</th>
+			</thead>
+			<tbody>
+				<!-- <tr th:unless="${treesList.isEmpty()}" th:each="tree : ${treesList}">
+					<td th:text="${tree.familyTreeName}">tree name</td>
+					<td th:text="${tree.profile.profileName}">parent of the tree</td>
+				</tr> -->
+				<tr th:each="tree: ${treesList}">
+					<td th:text="${tree.familyTreeName}">Tree name</td>
+					<td th:text="${tree.profile.profileName}">parent of the  tree</td>
+				</tr>
+			</tbody>
+		</table>
+		<div class="row">
+			<div th:if="${treesList.totalPages != 1}"
+                    class="form-group col-md-11 pagination-centered">
+                    <ul class="pagination">
+                        <li th:class="${treesList.number == 0} ? disabled"><a
+                            class="pageLink"
+                            th:href="@{/home(pageSize=${selectedPageSize}, page=1)}">«</a>
+                        </li>
+                        <li th:class="${treesList.number == 0} ? disabled"><a
+                            class="pageLink"
+                            th:href="@{/home(pageSize=${selectedPageSize}, page=${clientlist.number})}">?</a>
+                        </li>
+                        <li
+                            th:class="${treesList.number == (page - 1)} ? 'active pointer-disabled'"
+                            th:each="page : ${#numbers.sequence(pager.startPage, pager.endPage)}">
+                            <a class="pageLink"
+                            th:href="@{/home(pageSize=${selectedPageSize}, page=${page})}"
+                            th:text="${page}"></a>
+                        </li>
+                        <li
+                            th:class="${treesList.number + 1 == clientlist.totalPages} ? disabled">
+                            <a class="pageLink"
+                            th:href="@{/home(pageSize=${selectedPageSize}, page=${clientlist.number + 2})}">?</a>
+                        </li>
+                        <li
+                            th:class="${treesList.number + 1 == clientlist.totalPages} ? disabled">
+                            <a class="pageLink"
+                            th:href="@{/home(pageSize=${selectedPageSize}, page=${clientlist.totalPages})}">»</a>
+                        </li>
+                    </ul>
+                </div>
+		</div>
+	</div>
+	<script th:inline="javascript">
+        /*<![CDATA[*/
+        $(document).ready(function() {
+    changePageAndSize();
+});
+function changePageAndSize() {
+    $('#pageSizeSelect').change(function(evt) {
+        window.location.replace("/home?pageSize=" + this.value + "&page=1");
+    });
+}
+        /*]]>*/
+    </script>
 </body>
 </html>

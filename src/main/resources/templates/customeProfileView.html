@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Insert title here</title>
+<div th:fragment="family-tree-css">
+	<!-- <link rel="stylesheet" th:href='@{/css/jquery-ui-1.10.2.custom.css}'/>
+	<link th:href='@{/css/primitives.latest.css?3710}' media="screen" rel="stylesheet" type="text/css" /> -->
+</div>
+</head>
+<body>
+	<div  th:fragment="cust-profile-view" th:object="${customeProfile}">
+		<div class="panel panel-info">
+			<div class="panel-heading">
+		    	<h4 class="panel-title" th:text="*{profileName}">full Name here</h4>
+		    </div>
+		    <div class="panel-body">
+		    	<div class="row">
+			    	<div class=" col-md-12 col-lg-12 "> 
+			        	<table class="table table-user-information">
+			            	<tbody>
+			                	<tr>
+			                      	<td><img alt="User Pic" th:src="@{'/images/'+ *{gender} +'.png'}" src="/images/male.png" class="img-circle img-responsive" width="50px"></img></td>
+			                    </tr>
+			                    <tr>
+			                        <td>First Name</td>
+			                        <td th:text="*{firstName}">First Name here</td>
+			                    </tr>
+			                    <tr>
+			                        <td>Last Name</td>
+			                        <td th:text="*{lastName}">Last Name here</td>
+			                    </tr>
+			                    <tr>
+			                        <td>Child Of</td>
+			                        <td th:text="*{childOf}">06/23/2013</td>
+			                    </tr>
+                                <tr>
+			                        <td>Gender</td>
+			                        <td th:text="*{gender}">Female</td>
+			                    </tr>
+			                    <tr>
+			                        <td>Age</td>
+			                        <td th:text="*{age}">NA</td>
+			                    </tr>
+			                    <tr>
+			                        <td>Date of Birth:</td>
+			                        <td th:text="${{customeProfile.dateOfBirth}}">06/23/2013</td>
+			                    </tr>
+			                    <tr>
+			                        <td>Marital status</td>
+			                        <td th:text="*{maritalStatus}">06/23/2013</td>
+			                    </tr>
+			                    <tr th:if="${maritalStatus != 'single'}">
+			                        <td>Anniversary Date</td>
+			                        <td th:text="${{customeProfile.marriageAnniversary}}">06/23/2013</td>
+			                    </tr>
+			                    <tr th:if="${maritalStatus != 'single'}">
+			                        <td>Anniversaries celebrated</td>
+			                        <td th:text="*{numberOfCelebratedAnniversaries}">0</td>
+			                    </tr>
+	                            <tr th:if="${maritalStatus != 'single'}">
+			                        <td>No. of Children</td>
+			                        <td th:text="*{numberOfChildren}">06/23/2013</td>
+			                    </tr>
+			                    <tr>
+			                        <td>Phone Number</td>
+			                        <td>
+			                        	123-4567-890(Landline)<br></br>
+			                        	555-4567-890(Mobile)
+			                        </td>
+			                    </tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="panel-footer">
+			</div>
+		</div>
+	</div>
+</body>
+</html>

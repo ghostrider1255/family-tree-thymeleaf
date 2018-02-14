@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,7 +49,7 @@ public class ProfileController {
 	@RequestMapping(value=SAVE_PROFILE, method = RequestMethod.POST, 
 			consumes = MediaType.APPLICATION_JSON_VALUE , produces= MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public ResponseDto saveProfile(@RequestBody Profile profile,Model model){
+	public ResponseDto saveProfile(@RequestBody Profile profile, BindingResult result,Model model){
 		Profile newProfile = profileService.save(profile);
 		model.addAttribute("profile", newProfile);
 		ResponseDto response = new ResponseDto();
