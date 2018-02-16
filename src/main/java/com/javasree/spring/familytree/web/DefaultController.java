@@ -1,9 +1,7 @@
 package com.javasree.spring.familytree.web;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -51,7 +49,7 @@ public class DefaultController {
 	
 	@GetMapping("/")
 	public String defaultHome(){
-		return "redirect:home?pageSize=1,page=0";
+		return "redirect:home";
 	}
 	
 	@GetMapping(value = "/customeProfileView/{profileId}")
@@ -69,13 +67,7 @@ public class DefaultController {
 	
 	@GetMapping(value = "/home", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String home(@RequestParam("pageSize") Optional<Integer> pageSize, @RequestParam("page") Optional<Integer> page,  Model model){
-		Map<String,String> menuMap = new HashMap<>();
-		Iterable<FamilyTree> treesList = familyTreeService.findAll();
-		treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
-		if(!menuMap.isEmpty()){
-			model.addAttribute("menuItems", menuMap);
-		}
-		
+
 		int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
 		int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() -1;
 		Page<FamilyTree> treePages = (Page<FamilyTree>) familyTreeService.findAll(new PageRequest(evalPage, evalPageSize));
@@ -87,41 +79,29 @@ public class DefaultController {
 		return "/home";
 	}
 	
-	@GetMapping(value = "/events", produces = MediaType.APPLICATION_JSON_VALUE)
-	public String events(Model model){
-		Map<String,String> menuMap = new HashMap<>();
-		Iterable<FamilyTree> treesList = familyTreeService.findAll();
-		treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
-		if(!menuMap.isEmpty()){
-			model.addAttribute("menuItems", menuMap);
-		}
-		model.addAttribute("treesList", treesList);
-		treesList.forEach( tree -> {
-			List<Profile> profilesForEvents = profileService.findAllChildren(tree.getProfile().getProfileId());
-			CustomeEventCalendar events= profileService.getCustomeEventCalender(profilesForEvents);
-			model.addAttribute("eventsCalender", events);
-		});
-		return "/events";
-	}
-	
 	@GetMapping(value = "/createtreeform", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String createNewTreeFamily(Model model){
-		Map<String,String> menuMap = new HashMap<>();
-		Iterable<FamilyTree> treesList = familyTreeService.findAll();
-		treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
-		if(!menuMap.isEmpty()){
-			model.addAttribute("menuItems", menuMap);
-		}
 		model.addAttribute("familyTree", new FamilyTree());
 		return "/createTree";
 	}
 	
-	@PostMapping(value = "/familytree/saveTree"
+	@PostMapping(value = "/familytree/saveTree", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
 			, produces = MediaType.APPLICATION_JSON_VALUE)
 	public String saveFamilyTree(FamilyTree familyTree, BindingResult result, Model model){
 		FamilyTree newFamilyTree = familyTreeService.save(familyTree);
 		return "redirect:/viewfulltree/"+newFamilyTree.getFamilyTreeId();
 	}
+	
+	@GetMapping(value = "/events/{familyTreeId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public String events(@PathVariable("familyTreeId") String familyTreeId, Model model){
+		FamilyTree currentFamilyTree = familyTreeService.findFamilyTree(Long.valueOf(familyTreeId));
+		List<Profile> profilesForEvents = profileService.findAllChildren(currentFamilyTree.getProfile().getProfileId());
+		CustomeEventCalendar events= profileService.getCustomeEventCalender(profilesForEvents);
+		model.addAttribute("eventsCalender", events);
+		model.addAttribute("familytree", currentFamilyTree);
+		return "/events";
+	}
+	
 	
 	@GetMapping(value = "/viewfulltree/{familyTreeId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String getTree(@PathVariable("familyTreeId") String familyTreeId, Model model){
@@ -130,13 +110,7 @@ public class DefaultController {
 		nodesList = getTreeNodes(currentFamilyTree.getProfile().getProfileId());
 		ObjectMapper jsonMapper = new ObjectMapper();
 		try {
-			Map<String,String> menuMap = new HashMap<>();
-			Iterable<FamilyTree> treesList = familyTreeService.findAll();
-			treesList.forEach( tree -> menuMap.put(String.valueOf(tree.getFamilyTreeId()), tree.getFamilyTreeName()));
-			if(!menuMap.isEmpty()){
-				model.addAttribute("menuItems", menuMap);
-			}
-			
+			model.addAttribute("familytree", currentFamilyTree);
 			model.addAttribute("ft_items", jsonMapper.writeValueAsString(nodesList));
 			model.addAttribute("profile", new Profile());
 			model.addAttribute("customeProfile", profileService.getCustomeProfile(currentFamilyTree.getProfile()));
@@ -144,6 +118,10 @@ public class DefaultController {
 			log.warn(e.getMessage());
 		}
 		return "/viewfulltree";
+	}
+	@GetMapping(value = "/aboutus", produces = MediaType.APPLICATION_JSON_VALUE)
+	public String aboutUs(Model model){
+		return "/aboutus";
 	}
 	
 	private List<TreeNode> getTreeNodes(Long parentNodeId){

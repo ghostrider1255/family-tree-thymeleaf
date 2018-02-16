@@ -36,9 +36,9 @@ public class TreeUtils {
 			Calendar currentDate = Calendar.getInstance();
 			Calendar birthDate = Calendar.getInstance();
 			birthDate.setTime(dateOfBirth);
-			if(dateOfBirth.after(currentDate.getTime())){
+			/*if(dateOfBirth.after(currentDate.getTime())){
 				throw new IllegalArgumentException("Can not born in future");
-			}
+			}*/
 			int currentYear = currentDate.get(Calendar.YEAR);
 			int birthYear = birthDate.get(Calendar.YEAR);
 			age = currentYear - birthYear;
@@ -225,24 +225,40 @@ public class TreeUtils {
 	@SuppressWarnings("deprecation")
 	public static boolean isEvent(Date date){
 		if(date!=null){
-			int eventRangeInMonths = 1;
-			Date todayDate = new Date();
-			String currentMonthStartdate = computeMonthStartDate(convertDateToString(todayDate, "yyyyMMdd"));
-			Date currentMonth = convertToDate(currentMonthStartdate, "yyyyMMdd");
-			Date eventRangeMinDate = rangeDate(currentMonth, -eventRangeInMonths);
-			Date eventRangeMaxDate = rangeDate(currentMonth, eventRangeInMonths);
-			date.setYear(currentMonth.getYear());
-			return eventRangeMinDate.compareTo(date) * date.compareTo(eventRangeMaxDate) >=0;
+			try {
+				int eventRangeInMonths = 1;
+				Date todayDate = new Date();
+				String currentMonthStartdate = computeMonthStartDate(convertDateToString(todayDate, "yyyyMMdd"));
+				Date currentMonth = convertToDate(currentMonthStartdate, "yyyyMMdd");
+				Date eventRangeMinDate = rangeDate(currentMonth, -eventRangeInMonths);
+				Date eventRangeMaxDate = rangeDate(currentMonth, eventRangeInMonths);
+				String eventMaxEndDate = computeEndDate(convertDateToString(eventRangeMaxDate, "yyyyMMdd"));
+				eventRangeMaxDate = convertToDate(eventMaxEndDate, "yyyyMMdd");
+				date.setYear(currentMonth.getYear());
+				return eventRangeMinDate.compareTo(date) * date.compareTo(eventRangeMaxDate) >=0;
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
 		}
 		return false;
 	}
 	
 	@SuppressWarnings("deprecation")
-	private static Date rangeDate(Date date, int range){
+	public static String getEvent(Date eventDate){
+		eventDate.setYear(new Date().getYear());
+		return convertDateToString(eventDate, "yyyy-MM-dd");
+	}
+	@SuppressWarnings("deprecation")
+	public static Date rangeDate(Date date, int range){
 		Date eventRangeDate = new Date();
 		eventRangeDate.setYear(date.getYear());
 		eventRangeDate.setMonth(date.getMonth() + range);
 		eventRangeDate.setDate(date.getDate());
 		return eventRangeDate;
+	}
+	public static Date rangeDate(String dateString,String dateFormat, int range){
+		Date date = convertToDate(dateString, dateFormat);
+		return rangeDate(date , range);
 	}
 }

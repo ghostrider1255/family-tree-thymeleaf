@@ -1,15 +1,13 @@
 package com.javasree.spring.familytree.model;
 
-import java.util.Date;
-
 public class Event {
 
-	private Date eventDate;
+	private String eventDate;
 	private String note;
-	public Date getEventDate() {
+	public String getEventDate() {
 		return eventDate;
 	}
-	public void setEventDate(Date eventDate) {
+	public void setEventDate(String eventDate) {
 		this.eventDate = eventDate;
 	}
 	public String getNote() {

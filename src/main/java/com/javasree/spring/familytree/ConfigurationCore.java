@@ -8,7 +8,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.extras.java8time.dialect.Java8TimeDialect;
 import org.thymeleaf.spring4.SpringTemplateEngine;
-import org.thymeleaf.templateresolver.ITemplateResolver;
+import org.thymeleaf.templateresolver.UrlTemplateResolver;
+
+import com.javasree.spring.familytree.web.utils.DateFormatter;
+
+import nz.net.ultraq.thymeleaf.LayoutDialect;
 
 @Configuration
 @EnableWebMvc
@@ -23,11 +27,22 @@ public class ConfigurationCore extends 	WebMvcConfigurerAdapter{
 		registry.addResourceHandler("/**").addResourceLocations(CLASSPATH_RESOURCE_LOCATIONS);
 	}
 	
-/*	private TemplateEngine templateEngine(ITemplateResolver templateResolver){
+	@Override
+	public void addFormatters(org.springframework.format.FormatterRegistry registry) {
+		registry.addFormatter(dateFormtter());
+	};
+	
+	@Bean
+	public DateFormatter dateFormtter(){
+		return new DateFormatter();
+	}
+	
+	@Bean
+	public TemplateEngine templateEngine(){
 		SpringTemplateEngine engine = new SpringTemplateEngine();
+		engine.addTemplateResolver(new UrlTemplateResolver());
 		engine.addDialect(new Java8TimeDialect());
-		engine.setTemplateResolver(templateResolver);
-		
+		engine.addDialect(new LayoutDialect());
 		return engine;
-	}*/
+	}
 }

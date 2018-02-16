@@ -83,9 +83,9 @@ public class ProfileDaoImpl implements ProfileDao{
 					childrenList.add(child);
 				}
 			}
-			if(!children.isEmpty()){
+			/*if(!children.isEmpty()){
 				childrenList.addAll(children);
-			}
+			}*/
 			childrenList.add(currentProfile);
 		}
 		return childrenList;
@@ -146,31 +146,35 @@ public class ProfileDaoImpl implements ProfileDao{
 		
 		try {
 			String todayDateAsString = TreeUtils.convertDateToString(todayDate, STANDARD_UTILS_DATE_FORMAT); //default date for the event calender
-			String minDate = TreeUtils.computeMonthStartDate(todayDateAsString); //make current months 1st as the min date
-			String maxDate = TreeUtils.computeEndDate(minDate);//make current month end date as the maxdate
+			String currentMonthStartDate = TreeUtils.computeMonthStartDate(todayDateAsString); //make current months 1st as the min date
+			Date minDate = TreeUtils.rangeDate(currentMonthStartDate, STANDARD_UTILS_DATE_FORMAT, -1);
+			String minDateString = TreeUtils.convertDateToString(minDate, STANDARD_UTILS_DATE_FORMAT);
+			String currentMonthEndDate = TreeUtils.computeEndDate(currentMonthStartDate);
+			Date maxDate = TreeUtils.rangeDate(currentMonthEndDate, STANDARD_UTILS_DATE_FORMAT, 1);//make current month end date as the maxdate
+			String maxDateString = TreeUtils.convertDateToString(maxDate, STANDARD_UTILS_DATE_FORMAT);
 			
-			eventsCalender.setDefaultDate(TreeUtils.convertToDate(todayDateAsString, STANDARD_UTILS_DATE_FORMAT));
-			eventsCalender.setMinDate(TreeUtils.convertToDate(minDate, STANDARD_UTILS_DATE_FORMAT));
-			eventsCalender.setMaxDate(TreeUtils.convertToDate(maxDate, STANDARD_UTILS_DATE_FORMAT));
+			eventsCalender.setDefaultDate(TreeUtils.convertDateFormat(todayDateAsString, STANDARD_UTILS_DATE_FORMAT, "yyyy-MM-dd"));
+			eventsCalender.setMinDate(TreeUtils.convertDateFormat(minDateString, STANDARD_UTILS_DATE_FORMAT, "yyyy-MM-dd"));
+			eventsCalender.setMaxDate(TreeUtils.convertDateFormat(maxDateString, STANDARD_UTILS_DATE_FORMAT, "yyyy-MM-dd"));
 			List<Event> events = new ArrayList<>();
 			for (Profile profile : profiles) {
 				
 				if(profile.getDateOfBirth()!=null && TreeUtils.isEvent((Date)profile.getDateOfBirth().clone())){
 					Event birthDayEvent = new Event();
-					birthDayEvent.setEventDate(profile.getDateOfBirth());
-					birthDayEvent.setNote("it is '" + profile.getProfileName() +"'s BIRTHDAY");
+					birthDayEvent.setEventDate(TreeUtils.getEvent(profile.getDateOfBirth()));
+					birthDayEvent.setNote("it is " + profile.getProfileName() +" s BIRTHDAY");
 					events.add(birthDayEvent);
 				}
 				if(profile.getDateOfDeath()!=null && TreeUtils.isEvent((Date)profile.getDateOfDeath().clone())){
 					Event deathAnniversaryEvent = new Event();
-					deathAnniversaryEvent.setEventDate(profile.getDateOfDeath());
-					deathAnniversaryEvent.setNote("it is '" + profile.getProfileName() +"'s DEATH anniversary");
+					deathAnniversaryEvent.setEventDate(TreeUtils.getEvent(profile.getDateOfDeath()));
+					deathAnniversaryEvent.setNote("it is " + profile.getProfileName() +" s DEATH anniversary");
 					events.add(deathAnniversaryEvent);
 				}
 				if(profile.getMarriageAnniversary()!=null && TreeUtils.isEvent((Date)profile.getMarriageAnniversary().clone())){
 					Event marrieagehAnniversaryEvent = new Event();
-					marrieagehAnniversaryEvent.setEventDate(profile.getMarriageAnniversary());
-					marrieagehAnniversaryEvent.setNote("it is '" + profile.getProfileName() +"'s MARRIAGE anniversary");
+					marrieagehAnniversaryEvent.setEventDate(TreeUtils.getEvent(profile.getMarriageAnniversary()));
+					marrieagehAnniversaryEvent.setNote("it is " + profile.getProfileName() +" s MARRIAGE anniversary");
 					events.add(marrieagehAnniversaryEvent);
 				}
 			}

@@ -6,7 +6,7 @@
 	<div th:replace="familytree :: family-tree-css" ></div>
 </head>
 <body>
-	<div th:replace="header :: header" ></div>
+	<div th:replace="header :: header(familyTreeId=${familytree.familyTreeId})" ></div>
 	<section layout:fragment="custom-content">
 		<div th:replace="familytree :: family-tree" ></div>
 	</section>

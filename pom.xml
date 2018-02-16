@@ -156,6 +156,10 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 		    <artifactId>thymeleaf-extras-java8time</artifactId>
 		</dependency>
 		
+		<dependency>
+	        <groupId>nz.net.ultraq.thymeleaf</groupId>
+	        <artifactId>thymeleaf-layout-dialect</artifactId>
+	    </dependency>
 		
 		<!-- https://mvnrepository.com/artifact/oracle/ojdbc6
 		<dependency>

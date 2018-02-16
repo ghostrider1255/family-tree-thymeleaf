@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" 
 xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-layout:decorate="~{layout}">
+layout:decorate="~{base}">
 <head>
 <title>Family-tree</title>
 	<div th:replace="header :: header-css" ></div>
@@ -10,7 +10,7 @@ layout:decorate="~{layout}">
 	<link rel="stylesheet" th:href='@{/css/dncalendar-skin.min.css}' />
 </head>
 <body>
-	<div th:replace="header :: header" ></div>
+	<div th:replace="header :: header(familyTreeId=${familytree.familyTreeId})" ></div>
 	
 	<div id="dncalendar-container">
 	</div>
@@ -20,9 +20,13 @@ layout:decorate="~{layout}">
 	<script th:inline="javascript">
 	/*<![CDATA[*/
 	 $(document).ready(function() {
-			var my_calendar = $("#dncalendar-container").dnCalendar({
-				minDate: "2018-01-01",
-				maxDate: "2018-04-30",
+		 var minDate = /*[[${eventsCalender.minDate}]]*/ '';
+		 var maxDate = /*[[${eventsCalender.maxDate}]]*/ '';
+		 var events = /*[[${eventsCalender.events}]]*/ '';
+		 var eventsList = getEvents(events);
+		 var my_calendar = $("#dncalendar-container").dnCalendar({
+				minDate: minDate,
+				maxDate: maxDate,
 				//defaultDate: "2018-02-28",
 				monthNames: [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], 
 				monthNamesShort: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ],
@@ -30,10 +34,7 @@ layout:decorate="~{layout}">
                 dayNamesShort: [ 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat', 'Sund' ],
                 //dataTitles: { defaultDate: 'default', today : 'Today' },
                 dataTitles: { today : 'Today' },
-                notes: [
-                		{ "date": "2018-02-28", "note": ["Birthday"] },
-                		{ "date": "2018-03-12", "note": ["Anniversary"] }
-                		],
+                notes: eventsList,
                 showNotes: true,
                 startWeek: 'Sunday',
                 dayClick: function(date, view) {
@@ -50,7 +51,17 @@ layout:decorate="~{layout}">
 			// 	defaultDate: "2016-05-04"
 			// });
 		});          
-	           
+	         
+	function getEvents(events){
+		var eventsList = [];
+		for(var i=0; i< events.length; i++){
+			var eventNotes = {};
+			eventNotes.date = events[i].eventDate;
+			eventNotes.note = [events[i].note];
+			eventsList.push( eventNotes);
+		}
+		return eventsList;
+	}
 	/*]]>*/
 	</script>
 </body>

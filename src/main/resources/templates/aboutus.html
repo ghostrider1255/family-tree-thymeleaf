@@ -11,28 +11,6 @@ layout:decorate="~{layout}">
 	<script type="text/javascript" src="https://cdn.datatables.net/v/ju/datatables.min.js"></script>
 </head>
 <body>
-	<div th:replace="header :: header" ></div>
-	
-	<div>
-		<table id="dt_familytrees" class="display" width="80%">
-			<thead>
-				<th>name</th>
-				<th>Parent of the tree</th>
-			</thead>
-			<tbody>
-				<tr th:unless="${treesList.isEmpty()}" th:each="tree : ${treesList}">
-					<td th:text="${tree.familyTreeName}">tree name</td>
-					<td th:text="${tree.profile.profileName}">parent of the tree</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-	<script type="text/javascript">
-	$(document).ready(function() {
-	    $('#dt_familytrees').DataTable( {
-	        "pagingType": "full_numbers"
-	    } );
-	} );
-	</script>
+	<div th:replace="header :: empty-header" ></div>
 </body>
 </html>
