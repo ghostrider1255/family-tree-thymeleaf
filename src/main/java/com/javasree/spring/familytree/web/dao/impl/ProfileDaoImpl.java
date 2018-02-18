@@ -77,7 +77,7 @@ public class ProfileDaoImpl implements ProfileDao{
 			List<Profile> children = this.findByParentId(profileId);
 			for(Profile child: children){
 				if(profileRepository.existsByParentId(child.getProfileId())){
-					children = findAllChildren(child.getProfileId());
+					childrenList.addAll(findAllChildren(child.getProfileId()));
 				}
 				else{
 					childrenList.add(child);
@@ -162,19 +162,19 @@ public class ProfileDaoImpl implements ProfileDao{
 				if(profile.getDateOfBirth()!=null && TreeUtils.isEvent((Date)profile.getDateOfBirth().clone())){
 					Event birthDayEvent = new Event();
 					birthDayEvent.setEventDate(TreeUtils.getEvent(profile.getDateOfBirth()));
-					birthDayEvent.setNote("it is " + profile.getProfileName() +" s BIRTHDAY");
+					birthDayEvent.setNote(profile.getProfileName() +" s BIRTHDAY");
 					events.add(birthDayEvent);
 				}
 				if(profile.getDateOfDeath()!=null && TreeUtils.isEvent((Date)profile.getDateOfDeath().clone())){
 					Event deathAnniversaryEvent = new Event();
 					deathAnniversaryEvent.setEventDate(TreeUtils.getEvent(profile.getDateOfDeath()));
-					deathAnniversaryEvent.setNote("it is " + profile.getProfileName() +" s DEATH anniversary");
+					deathAnniversaryEvent.setNote(profile.getProfileName() +" s DEATH anniversary");
 					events.add(deathAnniversaryEvent);
 				}
 				if(profile.getMarriageAnniversary()!=null && TreeUtils.isEvent((Date)profile.getMarriageAnniversary().clone())){
 					Event marrieagehAnniversaryEvent = new Event();
 					marrieagehAnniversaryEvent.setEventDate(TreeUtils.getEvent(profile.getMarriageAnniversary()));
-					marrieagehAnniversaryEvent.setNote("it is " + profile.getProfileName() +" s MARRIAGE anniversary");
+					marrieagehAnniversaryEvent.setNote(profile.getProfileName() +" s MARRIAGE anniversary");
 					events.add(marrieagehAnniversaryEvent);
 				}
 			}
