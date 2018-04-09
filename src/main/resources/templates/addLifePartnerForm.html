@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Add Life Partner Form</title>
+	<th:block th:replace="header :: header-css" />
+	<th:block th:replace="familytree :: family-tree-css" />
+</head>
+<body>
+	<div th:replace="header :: header(familyTreeId=${familyTreeId})" ></div>
+	<div th:fragment="life-partner-form(parentId)">
+		<div id="add-life-partner-model" title="Add Life Partner" th:if="${lifePartner!=null}">
+			<p class="validateTips">All form fields are required.</p>
+		
+			<form id="add-life-partner" action="#" th:action="@{/profile/saveLifePartner}" th:object="${lifePartner}" method="post">
+				<table>
+					<tr>
+						<td>
+						</td>
+						<td>
+							<input type="hidden" id="lp_parentId" th:field="*{parentId}"></input>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Full Name
+						</td>
+						<td>
+							<input type="text" id="lp_profileName" th:field="*{profileName}"/>
+						</td>
+					</tr>
+					<tr>
+			        	<td>&nbsp;</td>
+			            <td>&nbsp;</td>
+			        </tr>
+					<tr>
+						<td>
+							First Name
+						</td>
+						<td>
+						<input type="text" id="lp_firstName" th:field="*{firstName}"/>
+						</td>
+					</tr>
+					<tr>
+			        	<td>&nbsp;</td>
+			            <td>&nbsp;</td>
+			        </tr>
+					<tr>
+						<td>
+							Last Name
+						</td>
+						<td>
+							<input type="text" id="lp_lastName" th:field="*{lastName}"/>
+						</td>
+					</tr>
+					<tr>
+			        	<td>&nbsp;</td>
+			            <td>&nbsp;</td>
+			        </tr>
+					<tr>
+						<td>Date Of Birth</td>
+						<td>
+							<input size="14" type="text" value="" id="lp_dob" th:field="*{dateOfBirth}" class="datePicker"/>
+						</td>
+					</tr>
+					<tr>
+			        	<td>&nbsp;</td>
+			            <td>&nbsp;</td>
+			        </tr>
+					<tr>
+						<td>is this person still alive</td>
+						<td>
+							<select id="lp_alive_yes_no">
+								<option th:value="0" th:text="selectValue">--Yes/No--</option>
+								<option th:value="alive" th:text="Yes">Yes</option>
+								<option th:value="died" th:text="No">No</option>			
+							</select>
+						</td>
+					</tr>
+					<tr>
+			        	<td>&nbsp;</td>
+			            <td>&nbsp;</td>
+			        </tr>
+					<tr class="dod_info">
+						<td>Date Of death</td>
+						<td>
+							<input size="12" type="text" id="lp_dod" th:field="*{dateOfDeath}" class="datePicker" />
+						</td>
+					</tr>
+					<tr>
+						<td>&nbsp;</td>
+						<td>
+							<input type="submit" value="Submit" />
+						</td>
+					</tr>
+				</table>
+			</form>
+		</div>
+	<script type="text/javascript" th:src='@{/js/jquery-1.9.1.js}'></script>
+	<script type="text/javascript" th:src='@{/js/jquery-ui-1.10.2.custom.min.js}'></script>
+	<script th:inline="javascript">
+	/*<![CDATA[*/
+	 
+	jQuery(document).ready(function () {
+		$('.datePicker').datepicker({
+			dateFormat: 'dd-mm-yy'
+		});
+
+		$('.dod_info').hide();
+		$('#lp_alive_yes_no').on("change", function(){
+			var selection = $(this).find(':selected').val();
+			if(selection !='alive'){
+				$('.dod_info').show();
+			}
+			else{
+				$('.dod_info').hide();
+			}
+		});
+	});
+	           
+	           /*]]>*/
+	</script>
+		
+	</div>
+</body>
+</html>

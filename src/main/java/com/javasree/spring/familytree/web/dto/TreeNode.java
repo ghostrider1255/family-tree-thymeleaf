@@ -10,6 +10,8 @@ public class TreeNode {
 	private String phone;
 	private String emailId;
 	private String image;
+	private String status;
+	private boolean isLifePartner;
 	
 	public TreeNode(){
 		super();
@@ -68,6 +70,22 @@ public class TreeNode {
 
 	public void setGender(String gender) {
 		this.gender = gender;
+	}
+
+	public boolean isLifePartner() {
+		return isLifePartner;
+	}
+
+	public void setLifePartner(boolean isLifePartner) {
+		this.isLifePartner = isLifePartner;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
 	}
 	
 }

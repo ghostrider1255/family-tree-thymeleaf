@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+xmlns:th="http://www.thymeleaf.org"
+xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+	<title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Base</title>
+	<meta name="description" content="" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<div th:replace="header :: header-css" ></div>
+		<link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui-1.10.2.custom.css}" />
+	<div th:replace="familytree :: family-tree-css" ></div>
+		
+<style>
+.pagination-centered {
+    text-align: center;
+}
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+.pointer-disabled {
+    pointer-events: none;
+}
+</style>
+</head>
+<body>
+	<header layout:fragment="custome-header">
+		<div th:replace="header :: empty-header" ></div>
+	</header>
+	<section layout:fragment="custome-content">
+		<p>Your page content goes here</p>
+	</section>
+	<footer>
+		<p>My custom footer</p>
+		<p layout:fragment="custome-footer">Your custom footer here</p>
+	</footer>
+</body>
+</html>

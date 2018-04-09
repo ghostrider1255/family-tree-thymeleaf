@@ -13,6 +13,8 @@ public class CustomeProfile extends Profile{
 	private Long age;
 	private Long numberOfCelebratedAnniversaries;
 	private String maritalStatus;
+	private String lifePartnerName;
+	private Long lifePartnerId;
 	
 	public String getChildOf() {
 		return childOf;
@@ -49,6 +51,18 @@ public class CustomeProfile extends Profile{
 	}
 	public void setCustomeProfileId(Long customeProfileId) {
 		this.customeProfileId = customeProfileId;
+	}
+	public String getLifePartnerName() {
+		return lifePartnerName;
+	}
+	public void setLifePartnerName(String lifePartnerName) {
+		this.lifePartnerName = lifePartnerName;
+	}
+	public Long getLifePartnerId() {
+		return lifePartnerId;
+	}
+	public void setLifePartnerId(Long lifePartnerId) {
+		this.lifePartnerId = lifePartnerId;
 	}
 
 }

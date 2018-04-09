@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.javasree.spring.familytree.web.utils.CustomeDateDeserializer;
 
 @Entity
-@Table(name="PROFILE")
+@Table(name="profile")
 public class Profile implements Serializable{
 
 	/**
@@ -41,7 +41,7 @@ public class Profile implements Serializable{
 	@DateTimeFormat(pattern="dd-mm-yyyy")
 	private Date marriageAnniversary;
 	private String maritalStatus;
-	
+	private boolean lifePartner;
 	private Long parentId;
 	
 	public Long getProfileId() {
@@ -158,7 +158,12 @@ public class Profile implements Serializable{
 	public void setMaritalStatus(String maritalStatus) {
 		this.maritalStatus = maritalStatus;
 	}
-	
+	public boolean isLifePartner() {
+		return lifePartner;
+	}
+	public void setLifePartner(boolean lifePartner) {
+		this.lifePartner = lifePartner;
+	}
 	/*@Override
 	public String toString(){
 		return this.toString();

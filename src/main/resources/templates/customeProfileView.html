@@ -2,14 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <title>Insert title here</title>
-<div th:fragment="family-tree-css">
-	<!-- <link rel="stylesheet" th:href='@{/css/jquery-ui-1.10.2.custom.css}'/>
-	<link th:href='@{/css/primitives.latest.css?3710}' media="screen" rel="stylesheet" type="text/css" /> -->
-</div>
+	<!-- <div th:fragment="family-tree-css">
+	</div> -->
 </head>
 <body>
-	<div  th:fragment="cust-profile-view" th:object="${customeProfile}">
-		<div class="panel panel-info">
+	<div  th:fragment="cust-profile-view(customeProfile)">
+	<div th:object="${customeProfile}">
+		<div class="panel panel-info" >
 			<div class="panel-heading">
 		    	<h4 class="panel-title" th:text="*{profileName}">full Name here</h4>
 		    </div>
@@ -23,47 +22,71 @@
 			                    </tr>
 			                    <tr>
 			                        <td>First Name</td>
-			                        <td th:text="*{firstName}">First Name here</td>
+			                        <td th:text="*{firstName}" colspan="2">First Name here</td>
 			                    </tr>
 			                    <tr>
 			                        <td>Last Name</td>
-			                        <td th:text="*{lastName}">Last Name here</td>
+			                        <td th:text="*{lastName}" colspan="2">Last Name here</td>
 			                    </tr>
 			                    <tr>
-			                        <td>Child Of</td>
-			                        <td th:text="*{childOf}">06/23/2013</td>
+			                    	<th:block th:if="${{customeProfile.lifePartner==false}}"><td >Child Of</td></th:block>
+			                        <th:block th:if="${{customeProfile.lifePartner==true}}"><td>Life Partner of</td></th:block>
+			                        <td th:text="*{childOf}" colspan="2">06/23/2013</td>
 			                    </tr>
                                 <tr>
 			                        <td>Gender</td>
-			                        <td th:text="*{gender}">Female</td>
-			                    </tr>
-			                    <tr>
-			                        <td>Age</td>
-			                        <td th:text="*{age}">NA</td>
+			                        <td th:text="*{gender}" colspan="2">Female</td>
 			                    </tr>
 			                    <tr>
 			                        <td>Date of Birth:</td>
-			                        <td th:text="${{customeProfile.dateOfBirth}}">06/23/2013</td>
+			                        <td th:text="${{customeProfile.dateOfBirth}}" colspan="2">06/23/2013</td>
 			                    </tr>
 			                    <tr>
-			                        <td>Marital status</td>
-			                        <td th:text="*{maritalStatus}">06/23/2013</td>
+			                        <td>Age</td>
+			                        <td th:text="*{age}" colspan="2">NA</td>
 			                    </tr>
-			                    <tr th:if="${maritalStatus != 'single'}">
-			                        <td>Anniversary Date</td>
-			                        <td th:text="${{customeProfile.marriageAnniversary}}">06/23/2013</td>
-			                    </tr>
-			                    <tr th:if="${maritalStatus != 'single'}">
-			                        <td>Anniversaries celebrated</td>
-			                        <td th:text="*{numberOfCelebratedAnniversaries}">0</td>
-			                    </tr>
-	                            <tr th:if="${maritalStatus != 'single'}">
-			                        <td>No. of Children</td>
-			                        <td th:text="*{numberOfChildren}">06/23/2013</td>
-			                    </tr>
+			                    <th:block th:switch="*{maritalStatus}" >
+			                    	<th:block th:case="'SINGLE'">
+			                    		<tr>
+			                        		<td>Marital status</td>
+			                        		<td th:text="*{maritalStatus}" colspan="2">Single/Married</td>
+			                    		</tr>
+			                    		<tr>
+			                    			<td>&nbsp;</td>
+			                    			<td>&nbsp;</td>
+			                    		</tr>
+			                    		<tr>
+			                    			<td>&nbsp;</td>
+			                    			<td>&nbsp;</td>
+			                    		</tr>
+			                    		<tr>
+			                    			<td>&nbsp;</td>
+			                    			<td>&nbsp;</td>
+			                    		</tr>
+			                    	</th:block>
+			                    	<th:block th:case="*">
+			                    		<tr>
+			                        		<td>Marital status</td>
+			                        		<td th:text="*{maritalStatus}" colspan="2">Single/Married</td>
+			                        		<td><a href="#" th:href="@{'/profile/1/initLifePartner/'+ ${customeProfile.profileId}}" th:if="${{customeProfile.lifePartnerId==null and customeProfile.lifePartner==false}}" >Add Life Partner</a></td>
+			                    		</tr>
+			                    		<tr>
+			                        		<td>Anniversary Date</td>
+			                        		<td th:text="${{customeProfile.marriageAnniversary}}" colspan="2">06/23/2013</td>
+			                    		</tr>
+			                    		<tr>
+			                        		<td>Anniversaries celebrated</td>
+					                        <td th:text="*{numberOfCelebratedAnniversaries}" colspan="2">0</td>
+					                    </tr>
+					                    <tr>
+			                        		<td>No. of Children</td>
+					                        <td th:text="*{numberOfChildren}" colspan="2">06/23/2013</td>
+					                    </tr>
+			                    	</th:block>
+			                    </th:block>
 			                    <tr>
 			                        <td>Phone Number</td>
-			                        <td>
+			                        <td colspan="2">
 			                        	123-4567-890(Landline)<br></br>
 			                        	555-4567-890(Mobile)
 			                        </td>
@@ -76,6 +99,7 @@
 			<div class="panel-footer">
 			</div>
 		</div>
+	</div>
 	</div>
 </body>
 </html>

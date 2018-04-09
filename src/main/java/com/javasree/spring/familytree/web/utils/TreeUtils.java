@@ -27,6 +27,9 @@ public class TreeUtils {
 		node.setDescription(profile.getProfileName());
 		node.setParent(profile.getParentId());
 		node.setGender(profile.getGender());
+		node.setLifePartner(profile.isLifePartner());
+		//node.setLifePartner(false);
+		node.setStatus(profile.getMaritalStatus().toUpperCase());
 		return node;
 	}
 	

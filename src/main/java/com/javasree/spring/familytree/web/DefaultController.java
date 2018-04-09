@@ -2,7 +2,9 @@ package com.javasree.spring.familytree.web;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,6 +28,7 @@ import com.javasree.spring.familytree.model.profile.CustomeProfile;
 import com.javasree.spring.familytree.model.profile.FamilyTree;
 import com.javasree.spring.familytree.model.profile.Profile;
 import com.javasree.spring.familytree.web.dto.PagerDto;
+import com.javasree.spring.familytree.web.dto.ResponseDto;
 import com.javasree.spring.familytree.web.dto.TreeNode;
 import com.javasree.spring.familytree.web.service.FamilyTreeService;
 import com.javasree.spring.familytree.web.service.ProfileService;
@@ -33,7 +37,7 @@ import com.javasree.spring.familytree.web.utils.TreeUtils;
 @Controller
 public class DefaultController {
 
-	private static final Logger log = LoggerFactory.getLogger(DefaultController.class);
+	private static final Logger logger = LoggerFactory.getLogger(DefaultController.class);
 	
 	private static final int BUTTONS_TO_SHOW = 3;
     private static final int INITIAL_PAGE = 0;
@@ -49,15 +53,90 @@ public class DefaultController {
 	
 	@GetMapping("/")
 	public String defaultHome(){
-		return "redirect:home";
+		return "redirect:/home";
+	}
+	
+	@PostMapping(value = "/profile/saveLifePartner", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE
+			, produces = MediaType.APPLICATION_JSON_VALUE)
+	public String saveLifePartner(Profile lifePartner, BindingResult result, Model model){
+		Optional<Profile> optioanlParentPartner = profileService.findProfile(lifePartner.getParentId());
+		if(optioanlParentPartner.isPresent()){
+			Profile parentPartner = optioanlParentPartner.get();
+			if("MALE".equalsIgnoreCase(parentPartner.getGender())){
+				lifePartner.setGender("female");
+			}
+			else{
+				lifePartner.setGender("male");
+			}
+			lifePartner.setMaritalStatus(parentPartner.getMaritalStatus());
+			lifePartner.setMarriageAnniversary(parentPartner.getMarriageAnniversary());
+			lifePartner.setLifePartner(true);
+			profileService.save(lifePartner);
+			
+		}
+		return "redirect:/viewfulltree/1";
+	}
+	
+	@GetMapping(value = "/getPartner/{parentProfileId}")
+	public String getLifePartnerProfile(@PathVariable("parentProfileId") String parentProfileId,Model model){
+		Profile lifePartner = null;
+		lifePartner = new Profile();
+		lifePartner.setFirstName("Test Name");
+		lifePartner.setParentId(Long.parseLong(parentProfileId));
+		lifePartner.setLifePartner(true);
+		model.addAttribute("lifePartner", lifePartner);
+		return "familytree :: life-partner-form";
+	}
+	
+	@GetMapping(value = "/profile/{profileId}/edit", produces= MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public ResponseDto editProfile(@PathVariable("profileId") String profileId,Model model){
+		ResponseDto response = new ResponseDto();
+        Optional<Profile> profileToEdit = profileService.findProfile(Long.valueOf(profileId));
+		if(profileToEdit.isPresent()){
+			response.setMsg("success");
+			response.setCode("200");
+			response.setObject(profileToEdit.get());
+			model.addAttribute("profile", profileToEdit.get());
+		}
+		return response;
+	}
+	
+	@GetMapping(value = "/profile/{familyTreeId}/initLifePartner/{parentProfileId}")
+	public String setupLifePartner(@PathVariable("familyTreeId") String familyTreeId ,
+			@PathVariable("parentProfileId") String parentProfileId, Model model){
+		
+		Profile lifePartner = null;
+		lifePartner = new Profile();
+		lifePartner.setParentId(Long.parseLong(parentProfileId));
+		lifePartner.setLifePartner(true);
+		model.addAttribute("lifePartner", lifePartner);
+		model.addAttribute("familyTreeId", familyTreeId);
+		return "addLifePartnerForm";
 	}
 	
 	@GetMapping(value = "/customeProfileView/{profileId}")
 	public String getCustomeProfileView(@PathVariable("profileId") String profileId, Model model){
 		if(profileId!=null && profileId.compareToIgnoreCase("null")!=0){
-			Profile profile = profileService.findProfile(Long.valueOf(profileId));
-			CustomeProfile custProf = profileService.getCustomeProfile(profile);
-			model.addAttribute("customeProfile", custProf);
+			Optional<Profile> optProfile = profileService.findProfile(Long.valueOf(profileId));
+			if(optProfile.isPresent()){
+				CustomeProfile custProf = profileService.getCustomeProfile(optProfile.get());
+				
+				Profile lifePartner = null;
+				if(custProf.getLifePartnerId() == null){
+					lifePartner = new Profile();
+					lifePartner.setParentId(custProf.getProfileId());
+					lifePartner.setLifePartner(true);
+					model.addAttribute("lifePartner", lifePartner);
+					
+				}else{
+					Optional<Profile> optLifePartner = profileService.findProfile(custProf.getLifePartnerId());
+					if(optLifePartner.isPresent()){
+						model.addAttribute("lifePartner", optLifePartner.get());
+					}
+				}
+				model.addAttribute("customeProfile", custProf);
+			}
 		}
 		else{
 			model.addAttribute("customeProfile", new CustomeProfile());
@@ -70,7 +149,7 @@ public class DefaultController {
 
 		int evalPageSize = pageSize.orElse(INITIAL_PAGE_SIZE);
 		int evalPage = (page.orElse(0) < 1) ? INITIAL_PAGE : page.get() -1;
-		Page<FamilyTree> treePages = (Page<FamilyTree>) familyTreeService.findAll(new PageRequest(evalPage, evalPageSize));
+		Page<FamilyTree> treePages = (Page<FamilyTree>) familyTreeService.findAll(PageRequest.of(evalPage, evalPageSize));
 		PagerDto pager = new PagerDto(treePages.getTotalPages(), treePages.getNumber(), BUTTONS_TO_SHOW);
 		model.addAttribute("treesList", treePages);
 		model.addAttribute("selectedPageSize", evalPageSize);
@@ -94,28 +173,60 @@ public class DefaultController {
 	
 	@GetMapping(value = "/events/{familyTreeId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String events(@PathVariable("familyTreeId") String familyTreeId, Model model){
-		FamilyTree currentFamilyTree = familyTreeService.findFamilyTree(Long.valueOf(familyTreeId));
-		List<Profile> profilesForEvents = profileService.findAllChildren(currentFamilyTree.getProfile().getProfileId());
-		CustomeEventCalendar events= profileService.getCustomeEventCalender(profilesForEvents);
-		model.addAttribute("eventsCalender", events);
-		model.addAttribute("familytree", currentFamilyTree);
+		Optional<FamilyTree> optCurrentFamilyTree = familyTreeService.findFamilyTree(Long.valueOf(familyTreeId));
+		if(optCurrentFamilyTree.isPresent()){
+			FamilyTree currentFamilyTree = optCurrentFamilyTree.get();
+			List<Profile> profilesForEvents = profileService.findAllChildren(currentFamilyTree.getProfile().getProfileId());
+			Map<Long,String> partnersProfileMap = this.pullPartnersMap(profilesForEvents);
+			CustomeEventCalendar events= profileService.getCustomeEventCalender(profilesForEvents,partnersProfileMap);
+			model.addAttribute("eventsCalender", events);
+			model.addAttribute("familytree", currentFamilyTree);
+		}
 		return "/events";
 	}
 	
+	private Map<Long,String> pullPartnersMap(List<Profile> profiles){
+		return profiles.stream().filter( profile -> profile.isLifePartner()).collect(Collectors.toMap( Profile::getParentId, Profile::getProfileName));
+	}
 	
 	@GetMapping(value = "/viewfulltree/{familyTreeId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String getTree(@PathVariable("familyTreeId") String familyTreeId, Model model){
 		List<TreeNode> nodesList = null;
-		FamilyTree currentFamilyTree = familyTreeService.findFamilyTree(Long.valueOf(familyTreeId));
-		nodesList = getTreeNodes(currentFamilyTree.getProfile().getProfileId());
-		ObjectMapper jsonMapper = new ObjectMapper();
-		try {
-			model.addAttribute("familytree", currentFamilyTree);
-			model.addAttribute("ft_items", jsonMapper.writeValueAsString(nodesList));
-			model.addAttribute("profile", new Profile());
-			model.addAttribute("customeProfile", profileService.getCustomeProfile(currentFamilyTree.getProfile()));
-		} catch (JsonProcessingException e) {
-			log.warn(e.getMessage());
+		Optional<FamilyTree> optCurrentFamilyTree = familyTreeService.findFamilyTree(Long.valueOf(familyTreeId));
+		if(optCurrentFamilyTree.isPresent()){
+			FamilyTree currentFamilyTree = optCurrentFamilyTree.get();
+			nodesList = getTreeNodes(currentFamilyTree.getProfile().getProfileId());
+			ObjectMapper jsonMapper = new ObjectMapper();
+			try {
+				model.addAttribute("familytree", currentFamilyTree);
+				model.addAttribute("ft_items", jsonMapper.writeValueAsString(nodesList));
+				model.addAttribute("profile", new Profile());
+				
+				CustomeProfile customeProfile = profileService.getCustomeProfile(currentFamilyTree.getProfile());
+				model.addAttribute("customeProfile", customeProfile);
+				Profile lifePartner = null;
+				
+				if(customeProfile.getLifePartnerId() == null){
+					lifePartner = new Profile();
+					lifePartner.setParentId(customeProfile.getProfileId());
+					lifePartner.setLifePartner(true);
+					model.addAttribute("lifePartner", lifePartner);
+					
+				}else{
+					Optional<Profile> optionalLifePartner = profileService.findProfile(customeProfile.getLifePartnerId());
+					if(optionalLifePartner.isPresent()){
+						model.addAttribute("lifePartner", optionalLifePartner.get());
+					}
+					else{
+						lifePartner = new Profile();
+						lifePartner.setParentId(customeProfile.getProfileId());
+						lifePartner.setLifePartner(true);
+						model.addAttribute("lifePartner", lifePartner);
+					}
+				}
+			} catch (JsonProcessingException e) {
+				logger.warn(e.getMessage());
+			}
 		}
 		return "/viewfulltree";
 	}
@@ -126,19 +237,22 @@ public class DefaultController {
 	
 	private List<TreeNode> getTreeNodes(Long parentNodeId){
 		List<TreeNode> nodes = new ArrayList<>();
-		
-		TreeNode parentNode = TreeUtils.getTreeNodeFromProfile(profileService.findProfile(parentNodeId));
-		nodes.add(parentNode);
-		
-		List<Profile> children = profileService.findByParentId(parentNodeId);
-		if(children != null && !children.isEmpty()){
-			children.forEach( childProfile -> {
-				if(profileService.existsByParentId(childProfile.getProfileId())){
-					nodes.addAll(getTreeNodes(childProfile.getProfileId()));
-				}
-				TreeNode node = TreeUtils.getTreeNodeFromProfile(childProfile);
-				nodes.add(node);
-			});
+		Optional<Profile> optParentProfile = profileService.findProfile(parentNodeId);
+		if(optParentProfile.isPresent()){
+			
+			TreeNode parentNode = TreeUtils.getTreeNodeFromProfile(optParentProfile.get());
+			nodes.add(parentNode);
+			
+			List<Profile> children = profileService.findByParentId(parentNodeId);
+			if(children != null && !children.isEmpty()){
+				children.forEach( childProfile -> {
+					if(profileService.existsByParentId(childProfile.getProfileId())){
+						nodes.addAll(getTreeNodes(childProfile.getProfileId()));
+					}
+					TreeNode node = TreeUtils.getTreeNodeFromProfile(childProfile);
+					nodes.add(node);
+				});
+			}
 		}
 		return nodes;
 	}

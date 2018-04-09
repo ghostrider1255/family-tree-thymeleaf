@@ -2,11 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 	<title>Family-tree</title>
-	<div th:fragment="family-tree-css">
+	<th:block th:fragment="family-tree-css">
 	<link rel="stylesheet" th:href='@{/css/jquery-ui-1.10.2.custom.css}'/>
 	<link th:href='@{/css/primitives.latest.css?3710}' media="screen" rel="stylesheet" type="text/css" />
 	
-<style type="text/css">
+	<style type="text/css">
 
 .table-user-information > tbody > tr {
     border-top: 1px solid rgb(221, 221, 221);
@@ -26,21 +26,21 @@
 	margin-top:20px;
 }
 	</style>
-	</div>
+	</th:block>
 	
 </head>
 <body>
 <div th:fragment="family-tree">
 <div class="container-fluid">
-		<div class="row">
+		<div class="row" id="treePluscustProf">
 			<div class="col-md-8 col-lg-8 nopadding">
-				<div id="btn50">50%</div>
+				<div id="btn70">70%</div>
 				<div id="btn80">80%</div>
 				<div id="btn100">100%</div>
 				<div id="btn130">130%</div>
 				<div id="orgdiagram"  style="height: 480px; overflow: hidden; border-style: dotted; border-width: 1px;"></div>
 			</div>
-			<div class="col-md-4 col-lg-4 nopadding" id="cust_profile_view">
+			<div class="col-md-4 col-lg-4 nopadding" id="cust_profile_view" th:include="customeProfileView :: cust-profile-view(${customeProfile})">
 				
 			</div>
 		</div>
@@ -51,6 +51,13 @@
 		
 		<form id="add-profile" th:object="${profile}">
 			<table>
+				<tr>
+					<td>
+					</td>
+					<td>
+						<input type="hidden" id="in_profileId" th:field="*{profileId}"></input>
+					</td> 
+				</tr>
 				<tr>
 					<td>
 					</td>
@@ -135,7 +142,8 @@
 			</table>	
 		</form>
 	</div>
-	<script type="text/javascript" th:src='@{/js/bootstrap.min.js}'></script>
+	
+	<script type="text/javascript" th:src='@{/js/bootstrap.bundle.min.js}'></script>
 	<script type="text/javascript" th:src='@{/js/jquery-1.9.1.js}'></script>
 	<script type="text/javascript" th:src='@{/js/jquery-ui-1.10.2.custom.min.js}'></script>
 	<script type="text/javascript" th:src='@{/js/primitives.min.js?3710}'></script>
@@ -183,6 +191,7 @@ jQuery(document).ready(function () {
 	
 	var rootProfileId = /*[[${customeProfile.profileId}]]*/ '';
 	var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
+	
 	$("#cust_profile_view").load(custProfileViewUrl + rootProfileId);
 	
 	dialog = $("#create-Profile-form").dialog({
@@ -202,6 +211,8 @@ jQuery(document).ready(function () {
 	        	profileData.dateOfDeath = $("#id_dod").val();
 	        	profileData.maritalStatus = $("#in_maritalStatus").val();
 	        	profileData.marriageAnniversary = $("#id_mAnniversary").val();
+	        	profileData.profileId = $("#in_profileId").val();
+	        	//alert('alerting profileId:'+profileData.profieId)
 	        	var saveProfileUrl = /*[[@{/profile/save}]]*/ 'profile/save';
 	        	$.ajax({
 					type: "POST",
@@ -220,8 +231,8 @@ jQuery(document).ready(function () {
 						$("#add-profile").trigger("reset");
 						var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
 						custProfileViewUrl = custProfileViewUrl + items[0].id;
-						//alert(items[0].id);
 						$("#cust_profile_view").load(custProfileViewUrl);
+						
 					},
 					error: function(jqXhr, textStatus, errorThrown){
 						console.log(textStatus);
@@ -242,19 +253,18 @@ jQuery(document).ready(function () {
 	});
 	
 	dialog.dialog("close");
-	
-	buttons.push(new primitives.orgdiagram.ButtonConfig("add", "ui-icon-person", "Add"));
-	buttons.push(new primitives.orgdiagram.ButtonConfig("properties", "ui-icon-gear", "Info"));
-	buttons.push(new primitives.orgdiagram.ButtonConfig("delete", "ui-icon-close", "Delete"));
-	        	
 	items = treeNodesToItems(treeNodes);
 	
 	options.pageFitMode = primitives.common.PageFitMode.None;
-	options.arrowsDirection = primitives.common.GroupByType.Children;
+	//options.arrowsDirection = primitives.common.GroupByType.Children;
 	options.items = items;
-	options.buttons = buttons;			
+	//options.buttons = buttons;
+	options.hasButtons = primitives.common.Enabled.False;
 	options.cursorItem = 0;
+	options.templates = [getCursorTemplate()];
+	options.defaultTemplateName = "CursorTemplate"; 
 	options.hasSelectorCheckbox = primitives.common.Enabled.False;
+	options.onCursorRender = onCursorRender;
 	options.onButtonClick = function (e, data) {
 		switch (data.name) {
 			case "delete": 
@@ -262,25 +272,45 @@ jQuery(document).ready(function () {
 						alert('you can not delete the parent node')
 					}
 					else{
-						var deleteProfileUrl = /*[[@{/profile/delete/}]]*/ 'profile/delete/';
-						$.ajax({
-							type: "DELETE",
-							url: deleteProfileUrl + data.context.id,
-							//dataType: "json",
-							headers: {
-		                	    'Accept': 'application/json',
-		                    	'Content-Type': 'application/json'
-		                	} ,
-							success: function(result){
-								items = treeNodesToItems(JSON.stringify(result.object));
-								updateTreeWithItems(items);
-								console.log(result);
-							},
-							error: function(jqXhr, textStatus, errorThrown){
-								console.log(textStatus);
-								alert('error:' +textStatus + '\n:' +errorThrown);
-							}
-						});
+						
+						var deleteDialog= $("<div title=\"Delete this profile?\">"+
+								"<p><span class=\"ui-icon ui-icon-alert\" style=\"float:left; margin:12px 12px 20px 0;\"></span>"+
+								"This member's profile will be permanently deleted and cannot be recovered. Are you sure?</p>"+
+								"</div>");
+						
+						$( deleteDialog ).dialog({
+						      resizable: false,
+						      height: "auto",
+						      width: 400,
+						      modal: true,
+						      buttons: {
+						        "Delete Profile": function() {
+						        	var deleteProfileUrl = /*[[@{/profile/delete/}]]*/ 'profile/delete/';
+									$.ajax({
+										type: "DELETE",
+										url: deleteProfileUrl + data.context.id,
+										//dataType: "json",
+										headers: {
+					                	    'Accept': 'application/json',
+					                    	'Content-Type': 'application/json'
+					                	} ,
+										success: function(result){
+											items = treeNodesToItems(JSON.stringify(result.object));
+											updateTreeWithItems(items);
+											console.log(result);
+										},
+										error: function(jqXhr, textStatus, errorThrown){
+											console.log(textStatus);
+											alert('error:' +textStatus + '\n:' +errorThrown);
+										}
+									});
+									$( this ).dialog( "close" );
+						        },
+						        Cancel: function() {
+						          $( this ).dialog( "close" );
+						        }
+						      }
+						 });
 					}
 				break;
 			case "add": 
@@ -292,34 +322,224 @@ jQuery(document).ready(function () {
 				break;
 				
 			case "properties":
-				var rootProfileId = data.context.id;
-				var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
-				$("#cust_profile_view").load(custProfileViewUrl + rootProfileId);
+				//var rootProfileId = data.context.id;
+				//alert('clicked on Edit button of '+ data.context.title);
+				//var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
+				//$("#cust_profile_view").load(custProfileViewUrl + rootProfileId);
+				
+				$.ajax({
+					type: "GET",
+					url: "/profile/" + data.context.id +"/edit" ,
+					headers: {
+						'Accept': 'application/json',
+						'Content-Type': 'application/json'
+					} ,
+					success: function(result){
+						//var profile = JSON.stringify();
+						$("#in_profileId").val(data.context.id);
+						
+						$("#in_profileName").val(result.object.profileName);
+			        	$("#in_firstName").val(result.object.firstName);
+			        	$("#in_lastName").val(result.object.lastName);
+			        	$("#in_gender").val(result.object.gender),
+			        	$("#in_parentId").val(result.object.parentId);
+			        	$("#id_dob").val($.datepicker.formatDate('dd-mm-yy',new Date(result.object.dateOfBirth)));
+			        	$("#id_dod").val(result.object.dateOfDeath);
+			        	$("#in_maritalStatus").val(result.object.maritalStatus);
+			        	$("#id_mAnniversary").val($.datepicker.formatDate('dd-mm-yy',new Date(result.object.marriageAnniversary)));
+			        	dialog.dialog( "open" );
+						console.log(result);
+					},
+					error: function(jqXhr, textStatus, errorThrown){
+						console.log(textStatus);
+						alert('error:' +textStatus + '\n:' +errorThrown);
+					}
+				});
 				break;
 		}
 	};
 	jQuery("#orgdiagram").orgDiagram(options);
 
-	$("#btn50").button().click(function () { onScale(0.5); });
+	$("#btn70").button().click(function () { onScale(0.7); });
 	$("#btn80").button().click(function () { onScale(.8); });
 	$("#btn100").button().click(function () { onScale(1); });
 	$("#btn130").button().click(function () { onScale(1.3); });
+	
 });
-	      
+
+
+function onCursorRender(event, data) {
+	switch (data.renderingMode) {
+		case primitives.common.RenderingMode.Create:
+			break;
+		case primitives.common.RenderingMode.Update:
+			/* Update widgets here */
+			break;
+	}
+
+	var buttons = [];
+	// It is not nessesary to use ButtonConfig class here. We can use regular noname objects as well.
+	switch (data.context.buttonsType) {
+		case "RootNode":
+			buttons.push(new primitives.orgdiagram.ButtonConfig("add", "ui-icon-person", "Add"));
+			buttons.push(new primitives.orgdiagram.ButtonConfig("properties", "ui-icon-gear", "Info"));
+			//buttons.push(new primitives.orgdiagram.ButtonConfig("delete", "ui-icon-close", "Delete"));
+			break;
+		case "LifePartner":
+			buttons.push(new primitives.orgdiagram.ButtonConfig("properties", "ui-icon-gear", "Info"));
+			buttons.push(new primitives.orgdiagram.ButtonConfig("delete", "ui-icon-close", "Delete"));
+			break;
+		case "Married":
+			buttons.push(new primitives.orgdiagram.ButtonConfig("add", "ui-icon-person", "Add"));
+			buttons.push(new primitives.orgdiagram.ButtonConfig("properties", "ui-icon-gear", "Info"));
+			buttons.push(new primitives.orgdiagram.ButtonConfig("delete", "ui-icon-close", "Delete"));
+			break;
+		case "UnMarried":
+			buttons.push(new primitives.orgdiagram.ButtonConfig("properties", "ui-icon-gear", "Info"));
+			buttons.push(new primitives.orgdiagram.ButtonConfig("delete", "ui-icon-close", "Delete"));
+			break;
+	}
+
+	if (buttons.length > 0) {
+		var topOffset = 2;
+		var buttonsInterval = 10;
+		// Cursor template contains several div elements so we have to select div we are going to use as buttons container
+		var buttonsPanel = data.element.find(".buttons-panel");
+
+		// Clean up contents of buttons panel first
+		buttonsPanel.empty();
+
+		for (index = 0; index < buttons.length; index += 1) {
+			buttonConfig = buttons[index];
+			// We use data-buttonname attriute to pass button name to orgchart onButtonClick event
+			button = jQuery('<li data-buttonname="' + buttonConfig.name + '"></li>')
+				.css({
+					position: "absolute",
+					top: topOffset + "px",
+					left: "0px",
+					width: buttonConfig.size.width + "px",
+					height: buttonConfig.size.height + "px",
+					padding: "3px"
+				})
+				.addClass("orgdiagrambutton"); // This class forces widget to consider button as its own. 
+				//Otherwise you have to listen to onMouseClick event and use target in order to recognize button click.
+
+			buttonsPanel.append(button);
+
+			button.button({
+				icons: { primary: buttonConfig.icon },
+				text: buttonConfig.text,
+				label: buttonConfig.label
+			});
+
+			if (!primitives.common.isNullOrEmpty(buttonConfig.tooltip)) {
+				if (button.tooltip != null) {
+					button.tooltip({ content: buttonConfig.tooltip });
+				}
+			}
+			topOffset += buttonsInterval + buttonConfig.size.height;
+		}
+	}
+	
+	/*on selecting the node get the node ID and update the custome profile details with the 
+	selected note profile details*/
+	var rootProfileId = data.context.id;
+	var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
+	//alert('calling customer profile view of:'+custProfileViewUrl + rootProfileId);
+	$("#cust_profile_view").load(custProfileViewUrl + rootProfileId);
+	
+};	
+
+	
 function treeNodesToItems(treeNodes){
 	var itemsToIterate = JSON.parse(treeNodes);
 	var new_items = [];
 	for(var i=0; i<itemsToIterate.length; i++){
-		new_items.push(
-				new primitives.orgdiagram.ItemConfig({
-					id: itemsToIterate[i].id,
-					parent: itemsToIterate[i].parent,
-					title: itemsToIterate[i].title,
-					description: itemsToIterate[i].description,
-					image: "../images/"+itemsToIterate[i].gender+".png"
-				}));
+		var c_buttonsType = "";
+		//alert(JSON.stringify(itemsToIterate));
+		if(itemsToIterate[i].parent == null){
+			c_buttonsType = "RootNode";
+		}
+		else if(itemsToIterate[i].lifePartner == true){
+			c_buttonsType = "LifePartner";
+		}
+		else if(itemsToIterate[i].status == 'SINGLE'){
+			c_buttonsType = "UnMarried";
+		}
+		else{
+			c_buttonsType = "Married";
+		}
+		
+		if(c_buttonsType == 'LifePartner'){
+			//alert(c_buttonsType);
+			new_items.push(
+					new primitives.orgdiagram.ItemConfig({
+						id: itemsToIterate[i].id,
+						parent: itemsToIterate[i].parent,
+						title: itemsToIterate[i].title,
+						description: itemsToIterate[i].description,
+						image: "../images/"+itemsToIterate[i].gender+".png",
+						buttonsType: c_buttonsType,
+						itemType: primitives.orgdiagram.ItemType.AdviserPartner,
+						adviserPlacementType: primitives.orgdiagram.AdviserPlacementType.Right,
+						groupTitle: "Life Partner"
+					}));
+		}
+		else{
+			//alert(c_buttonsType);
+			new_items.push(
+					new primitives.orgdiagram.ItemConfig({
+						id: itemsToIterate[i].id,
+						parent: itemsToIterate[i].parent,
+						title: itemsToIterate[i].title,
+						description: itemsToIterate[i].description,
+						image: "../images/"+itemsToIterate[i].gender+".png",
+						buttonsType: c_buttonsType
+					}));
+		}
 	}
 	return new_items;
+}
+
+function getCursorTemplate() {
+	var result = new primitives.orgdiagram.TemplateConfig();
+	result.name = "CursorTemplate";
+
+	result.itemSize = new primitives.common.Size(120, 100);
+	result.minimizedItemSize = new primitives.common.Size(3, 3);
+	result.highlightPadding = new primitives.common.Thickness(2, 2, 2, 2);
+	result.cursorPadding = new primitives.common.Thickness(3, 3, 38, 8);
+
+	var cursorTemplate = jQuery("<div></div>")
+	.css({
+		position: "absolute",
+		overflow: "hidden",
+		width: (result.itemSize.width + result.cursorPadding.left + result.cursorPadding.right) + "px",
+		height: (result.itemSize.height + result.cursorPadding.top + result.cursorPadding.bottom) + "px"
+	});
+
+	var cursorBorder = jQuery("<div></div>")
+	.css({
+		width: (result.itemSize.width + result.cursorPadding.left + 1) + "px",
+		height: (result.itemSize.height + result.cursorPadding.top + 1) + "px"
+	}).addClass("bp-item bp-corner-all bp-cursor-frame");
+	cursorTemplate.append(cursorBorder);
+
+	var buttonsGroup = jQuery("<div></div>")
+	.css({
+		position: "absolute",
+		overflow: "hidden",
+		top: result.cursorPadding.top + "px",
+		left: (result.itemSize.width + result.cursorPadding.left + 10) + "px",
+		width: "35px",
+		height: (result.itemSize.height + 1) + "px"
+	}).addClass("buttons-panel");
+
+	cursorTemplate.append(buttonsGroup);
+
+	result.cursorTemplate = cursorTemplate.wrap('<div>').parent().html();
+
+	return result;
 }
 
 function updateTreeWithItems(ft_items){

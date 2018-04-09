@@ -1,5 +1,7 @@
 package com.javasree.spring.familytree.web.dao.impl;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,8 +35,8 @@ public class FamilyTreeDaoImpl implements FamilyTreeDao{
 	}
 
 	@Override
-	public FamilyTree findFamilyTree(Long familyTreeId) {
-		return familyTreeRepository.findOne(familyTreeId);
+	public Optional<FamilyTree> findFamilyTree(Long familyTreeId) {
+		return familyTreeRepository.findById(familyTreeId);
 	}
 
 }

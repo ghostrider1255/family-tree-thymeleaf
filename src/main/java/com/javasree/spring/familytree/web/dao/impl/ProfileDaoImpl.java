@@ -3,6 +3,8 @@ package com.javasree.spring.familytree.web.dao.impl;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,12 +50,16 @@ public class ProfileDaoImpl implements ProfileDao{
 				this.delete(profile.getProfileId());
 			}
 			else{
-				profileRepository.delete(profile.getProfileId());
+				profileRepository.deleteById(profile.getProfileId());
 			}
 		}
-		profileRepository.delete(profileId);
+		profileRepository.deleteById(profileId);
 	}
 
+	public List<Profile> findChildrentByParentId(Long parentId) {
+		return profileRepository.findByParentIdAndLifePartner(parentId, true);
+	}
+	
 	@Override
 	public List<Profile> findByParentId(Long parentId) {
 		return profileRepository.findByParentId(parentId);
@@ -65,15 +71,15 @@ public class ProfileDaoImpl implements ProfileDao{
 	}
 
 	@Override
-	public Profile findProfile(Long profileId) {
-		return profileRepository.findOne(profileId);
+	public Optional<Profile> findProfile(Long profileId) {
+		return profileRepository.findById(profileId);
 	}
 
 	@Override
 	public List<Profile> findAllChildren(Long profileId){
 		List<Profile> childrenList = new ArrayList<>();
 		if(profileId != null){
-			Profile currentProfile = this.findProfile(profileId);
+			Optional<Profile> currentProfile = this.findProfile(profileId);
 			List<Profile> children = this.findByParentId(profileId);
 			for(Profile child: children){
 				if(profileRepository.existsByParentId(child.getProfileId())){
@@ -83,10 +89,8 @@ public class ProfileDaoImpl implements ProfileDao{
 					childrenList.add(child);
 				}
 			}
-			/*if(!children.isEmpty()){
-				childrenList.addAll(children);
-			}*/
-			childrenList.add(currentProfile);
+			if(currentProfile.isPresent())
+			childrenList.add(currentProfile.get());
 		}
 		return childrenList;
 	}
@@ -126,21 +130,34 @@ public class ProfileDaoImpl implements ProfileDao{
 			if(profile.getMarriageAnniversary()!=null){
 				customeProfile.setMarriageAnniversary(profile.getMarriageAnniversary());
 				customeProfile.setNumberOfCelebratedAnniversaries(Long.valueOf(TreeUtils.getAge(profile.getMarriageAnniversary())));
+				Profile lifePartnerProfile = profileRepository.getLifePartner(profile.getProfileId());
+				if(lifePartnerProfile!=null){
+					customeProfile.setLifePartnerName(lifePartnerProfile.getProfileName());
+					customeProfile.setLifePartnerId(lifePartnerProfile.getProfileId());
+				}
 			}
-			
-			List<Profile> childrenList = profileRepository.findByParentId(profile.getProfileId());
-			customeProfile.setNumberOfChildren(Long.valueOf(childrenList.size()));
+			 if(profile.isLifePartner()){
+				 customeProfile.setLifePartner(profile.isLifePartner());
+				 List<Profile> childrenList = profileRepository.findByParentIdAndLifePartner(profile.getParentId(),false);
+				 customeProfile.setNumberOfChildren(Long.valueOf(childrenList.size()));
+			}
+			 else{
+				    List<Profile> childrenList = profileRepository.findByParentIdAndLifePartner(profile.getProfileId(),false);
+					customeProfile.setNumberOfChildren(Long.valueOf(childrenList.size()));
+			 }
 		}
 		
 		if(profile.getParentId()!=null){
-			customeProfile.setChildOf(profileRepository.findOne(profile.getParentId()).getProfileName());
+			Optional<Profile> parent = profileRepository.findById(profile.getParentId());
+			if(parent.isPresent()){
+				customeProfile.setChildOf(parent.get().getProfileName());
+			}
 		}
-				
 		return customeProfile;
 	}
 
 	@Override
-	public CustomeEventCalendar getCustomeEventCalender(List<Profile> profiles) {
+	public CustomeEventCalendar getCustomeEventCalender(List<Profile> profiles,Map<Long,String> partnersMap) {
 		CustomeEventCalendar eventsCalender = new CustomeEventCalendar();
 		Date todayDate = new Date();
 		
@@ -159,23 +176,23 @@ public class ProfileDaoImpl implements ProfileDao{
 			List<Event> events = new ArrayList<>();
 			for (Profile profile : profiles) {
 				
-				if(profile.getDateOfBirth()!=null && TreeUtils.isEvent((Date)profile.getDateOfBirth().clone())){
-					Event birthDayEvent = new Event();
-					birthDayEvent.setEventDate(TreeUtils.getEvent(profile.getDateOfBirth()));
-					birthDayEvent.setNote(profile.getProfileName() +" s BIRTHDAY");
-					events.add(birthDayEvent);
+				Event event = getIfEvent(profile.getDateOfBirth(), profile.getProfileName());
+				if(event !=null){
+					event.setNote(profile.getProfileName() +"'s BIRTHDAY");
+					events.add(event);
 				}
-				if(profile.getDateOfDeath()!=null && TreeUtils.isEvent((Date)profile.getDateOfDeath().clone())){
-					Event deathAnniversaryEvent = new Event();
-					deathAnniversaryEvent.setEventDate(TreeUtils.getEvent(profile.getDateOfDeath()));
-					deathAnniversaryEvent.setNote(profile.getProfileName() +" s DEATH anniversary");
-					events.add(deathAnniversaryEvent);
+				event = getIfEvent(profile.getDateOfDeath(), profile.getProfileName());
+				if(event !=null){
+					event.setNote(profile.getProfileName() +"'s DEATH annivesary");
+					events.add(event);
 				}
-				if(profile.getMarriageAnniversary()!=null && TreeUtils.isEvent((Date)profile.getMarriageAnniversary().clone())){
-					Event marrieagehAnniversaryEvent = new Event();
-					marrieagehAnniversaryEvent.setEventDate(TreeUtils.getEvent(profile.getMarriageAnniversary()));
-					marrieagehAnniversaryEvent.setNote(profile.getProfileName() +" s MARRIAGE anniversary");
-					events.add(marrieagehAnniversaryEvent);
+				if(!profile.isLifePartner()){
+					event = getIfEvent(profile.getMarriageAnniversary(), profile.getProfileName());
+					if(event !=null){
+						String lifePartnersName = partnersMap.get(profile.getProfileId());
+						event.setNote(profile.getProfileName() +" &" + lifePartnersName +"'s MARRIAGE annivesary");
+						events.add(event);
+					}
 				}
 			}
 			eventsCalender.setEvents(events);
@@ -183,5 +200,15 @@ public class ProfileDaoImpl implements ProfileDao{
 			logger.warn(e.getMessage());
 		}
 		return eventsCalender;
+	}
+	
+	private Event getIfEvent(Date eventDate, String personName){
+		Event birthDayEvent = null;
+		if(eventDate !=null && TreeUtils.isEvent((Date)eventDate.clone())){
+			birthDayEvent = new Event();
+			birthDayEvent.setEventDate(TreeUtils.getEvent(eventDate));
+			//birthDayEvent.setNote(personName +" s BIRTHDAY");
+		}
+		return birthDayEvent;
 	}
 }

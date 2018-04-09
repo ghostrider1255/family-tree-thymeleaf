@@ -1,6 +1,8 @@
 package com.javasree.spring.familytree.web.service.impl;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,7 +45,7 @@ public class ProfileServiceImpl implements ProfileService{
 	}
 
 	@Override
-	public Profile findProfile(Long profileId) {
+	public Optional<Profile> findProfile(Long profileId) {
 		return profileDao.findProfile(profileId);
 	}
 
@@ -63,8 +65,8 @@ public class ProfileServiceImpl implements ProfileService{
 	}
 
 	@Override
-	public CustomeEventCalendar getCustomeEventCalender(List<Profile> profiles) {
-		return profileDao.getCustomeEventCalender(profiles);
+	public CustomeEventCalendar getCustomeEventCalender(List<Profile> profiles,Map<Long,String> partnersMap) {
+		return profileDao.getCustomeEventCalender(profiles,partnersMap);
 	}
 	
 	

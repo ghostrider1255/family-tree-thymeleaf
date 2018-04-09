@@ -4,7 +4,8 @@
 <property name="logEncoding" value="UTF-8"/>
 <property name="logDirectory" value="log"/>
 
-<timestamp key="myTimestamp" timeReference="contextBirth" datePattern="yyyyMMdd'_'HHmmss"/>
+<!-- <timestamp key="myTimestamp" timeReference="contextBirth" datePattern="yyyyMMdd'_'HHmmss"/> -->
+<timestamp key="myTimestamp" timeReference="contextBirth" datePattern="yyyyMMdd"/>
 
 <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
 	<layout class="ch.qos.logback.classic.PatternLayout">
@@ -29,21 +30,64 @@
     </encoder>
 </appender>
 
-	<logger name="org.springframework" level="INFO" additivity="false">
-		<appender-ref ref="console"/>
-		<appender-ref ref="fileAppender"/>
+<appender name="springAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<file>${logDirectory}/spring_${myTimestamp}.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${logDirectory}/archieved/spring_%d{yyyyMMdd}.%i.log</fileNamePattern>
+        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+            <maxFileSize>30MB</maxFileSize>
+        </timeBasedFileNamingAndTriggeringPolicy>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <charset>${logEncoding}</charset>
+        <pattern>${logPattern}</pattern>
+    </encoder>
+</appender>
+
+<appender name="hibernateAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+	<file>${logDirectory}/hibernate_${myTimestamp}.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${logDirectory}/archieved/hibernate_%d{yyyyMMdd}.%i.log</fileNamePattern>
+        <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+            <maxFileSize>30MB</maxFileSize>
+        </timeBasedFileNamingAndTriggeringPolicy>
+    </rollingPolicy>
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <charset>${logEncoding}</charset>
+        <pattern>${logPattern}</pattern>
+    </encoder>
+</appender>
+
+	<logger name="org.springframework" level="WARN" additivity="false">
+		<appender-ref ref="springAppender"/>
 	</logger>
-	<logger name="org.hibernate" level="INFO" additivity="false">
-		<appender-ref ref="console"/>
-		<appender-ref ref="fileAppender"/>
+	
+	<logger name="org.thymeleaf" level="WARN" additivity="false">
+		<appender-ref ref="springAppender"/>
 	</logger>
-	<logger name="com.sreepapers.spring.familytree" level="DEBUG" additivity="false">
+	
+	<logger name="org.hibernate" level="WARN" additivity="false">
+		<appender-ref ref="hibernateAppender"/>
+	</logger>
+	
+	<!-- <logger name="org.hibernate.type.descriptor.sql" level="TRACE" additivity="false">
+		<appender-ref ref="hibernateAppender"/>
+	</logger> -->
+	
+	<logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+		<appender-ref ref="hibernateAppender"/>
+	</logger>
+	
+	<logger name="com.mysql" level="WARN" additivity="false">
+		<appender-ref ref="hibernateAppender"/>
+	</logger>
+	
+	<logger name="com.javasree.spring.familytree" level="DEBUG" additivity="false">
 		<appender-ref ref="console"/>
 		<appender-ref ref="fileAppender"/>
 	</logger>
 
 	<root level="INFO">
     	<appender-ref ref="console"/>
-    	<appender-ref ref="fileAppender"/>
 	</root>
 </configuration>

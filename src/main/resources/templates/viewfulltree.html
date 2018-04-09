@@ -2,14 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <title>Family-tree</title>
-	<div th:replace="header :: header-css" ></div>
-	<div th:replace="familytree :: family-tree-css" ></div>
+	<th:block th:replace="header :: header-css" />
+	<th:block th:replace="familytree :: family-tree-css" />
 </head>
 <body>
 	<div th:replace="header :: header(familyTreeId=${familytree.familyTreeId})" ></div>
-	<section layout:fragment="custom-content">
+	<section th:fragment="custom-content">
 		<div th:replace="familytree :: family-tree" ></div>
 	</section>
-	
 </body>
 </html>
