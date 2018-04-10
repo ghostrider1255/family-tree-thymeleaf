@@ -68,7 +68,8 @@
 			                    		<tr>
 			                        		<td>Marital status</td>
 			                        		<td th:text="*{maritalStatus}" colspan="2">Single/Married</td>
-			                        		<td><a href="#" th:href="@{'/profile/1/initLifePartner/'+ ${customeProfile.profileId}}" th:if="${{customeProfile.lifePartnerId==null and customeProfile.lifePartner==false}}" >Add Life Partner</a></td>
+			                        		<td><a href="#" th:href="@{'/familytree/'+${familyTreeId} +'/profile/'+ ${customeProfile.profileId} +'/initLifePartner'}" 
+			                        		th:if="${{customeProfile.lifePartnerId==null and customeProfile.lifePartner==false}}" >Add Life Partner</a></td>
 			                    		</tr>
 			                    		<tr>
 			                        		<td>Anniversary Date</td>

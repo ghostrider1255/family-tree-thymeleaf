@@ -1,21 +1,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>familytree</groupId>
-  <artifactId>structure</artifactId>
+  <groupId>com.javasree</groupId>
+  <artifactId>familytree.thymeleaf</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>FamilyTreeStructure</name>
+  <name>familytree</name>
   <packaging>jar</packaging>
   
   <parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.2.RELEASE</version>
+		<!-- <version>1.5.2.RELEASE</version> -->
+		<version>2.0.0.RELEASE</version>
 	</parent>
 	
 	<properties>
 		<java.version>1.8</java.version>
-		<hibernate.version>4.3.5.Final</hibernate.version>
+		<hibernate.version>5.2.3.Final</hibernate.version>
 		<start-class>com.javasree.spring.familytree.FamilyTreeApplication</start-class>
 	</properties>
 	
@@ -75,13 +76,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 			<scope>provided</scope>
 		</dependency>
 		
-		<!-- Optional, test for static content, bootstrap CSS-->
-		<dependency>
-			<groupId>org.webjars</groupId>
-			<artifactId>bootstrap</artifactId>
-			<version>3.3.7</version>
-		</dependency>
-		
 		<!-- hibernate dependencies -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -108,17 +102,17 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 			<scope>provided</scope>
 		</dependency>
 		
-		<dependency>
+<!-- 		<dependency>
     		<groupId>commons-beanutils</groupId>
     		<artifactId>commons-beanutils</artifactId>
-    		<!-- <version>1.8.0</version> -->
-		</dependency>
+    		<version>1.8.0</version>
+		</dependency> -->
 		
-		<dependency>
+<!-- 		<dependency>
     		<groupId>commons-digester</groupId>
     		<artifactId>commons-digester</artifactId>
-    		<!-- <version>2.0</version> -->
-		</dependency>
+    		<version>2.0</version>
+		</dependency> -->
 		
 		<!-- Test -->
 		<dependency>
@@ -168,6 +162,13 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 			<version>11.2.0.3</version>
 		</dependency> -->
 		
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.197</version>
+			<scope>runtime</scope>
+		</dependency>
+		
 	</dependencies>
 	
 	<repositories>
@@ -181,10 +182,17 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 		<plugins>
 			<!-- Package as an executable jar/war -->
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+            	<artifactId>maven-resources-plugin</artifactId>
+            	<version>2.7</version>
+          		<dependencies>
+            		<dependency>
+                		<groupId>org.apache.maven.shared</groupId>
+                		<artifactId>maven-filtering</artifactId>
+                		<version>1.3</version>
+            		</dependency>
+          		</dependencies>
 			</plugin>
 		</plugins>
-		
 	</build>
 </project>

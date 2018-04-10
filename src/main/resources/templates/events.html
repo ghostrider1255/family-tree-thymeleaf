@@ -5,8 +5,8 @@ xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
 >
 <head>
 <title>Family-tree</title>
-	<div th:replace="header :: header-css" ></div>
-	<div th:replace="familytree :: family-tree-css" ></div>
+	<th:block th:replace="header :: header-css" ></th:block>
+	<th:block th:replace="familytree :: family-tree-css" ></th:block>
 	<link rel="stylesheet" th:href='@{/css/dncalendar-skin.min.css}' />
 </head>
 <body>

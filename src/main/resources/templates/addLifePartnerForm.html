@@ -11,7 +11,7 @@
 		<div id="add-life-partner-model" title="Add Life Partner" th:if="${lifePartner!=null}">
 			<p class="validateTips">All form fields are required.</p>
 		
-			<form id="add-life-partner" action="#" th:action="@{/profile/saveLifePartner}" th:object="${lifePartner}" method="post">
+			<form id="add-life-partner" action="#" th:action="@{'/familytree/'+${familyTreeId}+'/profile/saveLifePartner'}" th:object="${lifePartner}" method="post">
 				<table>
 					<tr>
 						<td>

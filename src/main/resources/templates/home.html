@@ -46,7 +46,7 @@ xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 					<td th:text="${tree.familyTreeName}">Tree name</td>
 					<td th:text="${tree.profile.profileName}">parent of the  tree</td>
 					<td>
-						<a th:href="@{'/viewfulltree/' + ${tree.familyTreeId}}" th:text="${tree.familyTreeName}">Trees</a>
+						<a th:href="@{'/familytree/' + ${tree.familyTreeId} +'/view'}" th:text="${tree.familyTreeName}">Trees</a>
 					</td>
 				</tr>
 			</tbody>

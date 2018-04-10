@@ -18,6 +18,8 @@ public class ConfigurationHibernate {
 	public ServletRegistrationBean h2ServletRegistration(){
 		ServletRegistrationBean registrationBean = new ServletRegistrationBean<>(new WebServlet());
 		registrationBean.addUrlMappings("/console/*");
+		//registrationBean.addInitParameter("webAllowOthers", "true");
+		//registrationBean.addInitParameter("webPort", "7777");
 		return registrationBean;
 	}
 	

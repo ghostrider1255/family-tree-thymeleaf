@@ -190,9 +190,10 @@ jQuery(document).ready(function () {
 	});
 	
 	var rootProfileId = /*[[${customeProfile.profileId}]]*/ '';
-	var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
+	var familyTreeId = /*[[${familyTreeId}]]*/ '';
+	var custProfileViewUrl=/*[[@{'/familytree/'+${familyTreeId}+'/profile/'}]]*/ '/familytree/0/profile/0/customeProfile';
 	
-	$("#cust_profile_view").load(custProfileViewUrl + rootProfileId);
+	$("#cust_profile_view").load(custProfileViewUrl + rootProfileId + "/customeProfile");
 	
 	dialog = $("#create-Profile-form").dialog({
 		autoOpen: false,
@@ -212,8 +213,7 @@ jQuery(document).ready(function () {
 	        	profileData.maritalStatus = $("#in_maritalStatus").val();
 	        	profileData.marriageAnniversary = $("#id_mAnniversary").val();
 	        	profileData.profileId = $("#in_profileId").val();
-	        	//alert('alerting profileId:'+profileData.profieId)
-	        	var saveProfileUrl = /*[[@{/profile/save}]]*/ 'profile/save';
+	        	var saveProfileUrl = /*[[@{'/familytree/'+ ${familyTreeId} +'/profile/save'}]]*/ '/familytree/0/profile/save';
 	        	$.ajax({
 					type: "POST",
 					url: saveProfileUrl,
@@ -229,8 +229,8 @@ jQuery(document).ready(function () {
 						items = treeNodesToItems(JSON.stringify(result.object));
 						updateTreeWithItems(items);
 						$("#add-profile").trigger("reset");
-						var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
-						custProfileViewUrl = custProfileViewUrl + items[0].id;
+						var custProfileViewUrl=/*[[@{'/familytree/'+${familyTreeId}+'/profile/'}]]*/ '/familytree/0/profile/0/customeProfile';
+						custProfileViewUrl = custProfileViewUrl + items[0].id +'/customeProfile';
 						$("#cust_profile_view").load(custProfileViewUrl);
 						
 					},
@@ -285,10 +285,10 @@ jQuery(document).ready(function () {
 						      modal: true,
 						      buttons: {
 						        "Delete Profile": function() {
-						        	var deleteProfileUrl = /*[[@{/profile/delete/}]]*/ 'profile/delete/';
+						        	var deleteProfileUrl = /*[[@{'/familytree/'+${familyTreeId}+'/profile/'}]]*/ 'familytree/0/profile/0/delete';
 									$.ajax({
 										type: "DELETE",
-										url: deleteProfileUrl + data.context.id,
+										url: deleteProfileUrl + data.context.id +"/delete",
 										//dataType: "json",
 										headers: {
 					                	    'Accept': 'application/json',
@@ -322,14 +322,11 @@ jQuery(document).ready(function () {
 				break;
 				
 			case "properties":
-				//var rootProfileId = data.context.id;
-				//alert('clicked on Edit button of '+ data.context.title);
-				//var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
-				//$("#cust_profile_view").load(custProfileViewUrl + rootProfileId);
 				
+				var familyTreeId=/*[[${familyTreeId}]]*/ '0';
 				$.ajax({
 					type: "GET",
-					url: "/profile/" + data.context.id +"/edit" ,
+					url: "/familytree/" + familyTreeId + "/profile/" + data.context.id +"/edit" ,
 					headers: {
 						'Accept': 'application/json',
 						'Content-Type': 'application/json'
@@ -443,10 +440,12 @@ function onCursorRender(event, data) {
 	
 	/*on selecting the node get the node ID and update the custome profile details with the 
 	selected note profile details*/
+	
 	var rootProfileId = data.context.id;
-	var custProfileViewUrl=/*[[@{/customeProfileView/}]]*/ '/customeProfileView/1';
-	//alert('calling customer profile view of:'+custProfileViewUrl + rootProfileId);
-	$("#cust_profile_view").load(custProfileViewUrl + rootProfileId);
+	var familyTreeId = /*[[${familyTreeId}]]*/ '';
+	var custProfileViewUrl=/*[[@{'/familytree/'+${familyTreeId}+'/profile/'}]]*/ '/familytree/0/profile/0/customeProfile';
+	//alert('viewing Custome Profile:'+custProfileViewUrl + rootProfileId + "/customeProfile");
+	$("#cust_profile_view").load(custProfileViewUrl + rootProfileId + "/customeProfile");
 	
 };	
 
@@ -456,7 +455,6 @@ function treeNodesToItems(treeNodes){
 	var new_items = [];
 	for(var i=0; i<itemsToIterate.length; i++){
 		var c_buttonsType = "";
-		//alert(JSON.stringify(itemsToIterate));
 		if(itemsToIterate[i].parent == null){
 			c_buttonsType = "RootNode";
 		}
@@ -471,14 +469,13 @@ function treeNodesToItems(treeNodes){
 		}
 		
 		if(c_buttonsType == 'LifePartner'){
-			//alert(c_buttonsType);
 			new_items.push(
 					new primitives.orgdiagram.ItemConfig({
 						id: itemsToIterate[i].id,
 						parent: itemsToIterate[i].parent,
 						title: itemsToIterate[i].title,
 						description: itemsToIterate[i].description,
-						image: "../images/"+itemsToIterate[i].gender+".png",
+						image: "/images/"+itemsToIterate[i].gender+".png",
 						buttonsType: c_buttonsType,
 						itemType: primitives.orgdiagram.ItemType.AdviserPartner,
 						adviserPlacementType: primitives.orgdiagram.AdviserPlacementType.Right,
@@ -486,14 +483,13 @@ function treeNodesToItems(treeNodes){
 					}));
 		}
 		else{
-			//alert(c_buttonsType);
 			new_items.push(
 					new primitives.orgdiagram.ItemConfig({
 						id: itemsToIterate[i].id,
 						parent: itemsToIterate[i].parent,
 						title: itemsToIterate[i].title,
 						description: itemsToIterate[i].description,
-						image: "../images/"+itemsToIterate[i].gender+".png",
+						image: "/images/"+itemsToIterate[i].gender+".png",
 						buttonsType: c_buttonsType
 					}));
 		}
@@ -560,6 +556,5 @@ function onScale(scale) {
 	 /*]]>*/
 	</script>
 </div>
-		
 </body>
 </html>

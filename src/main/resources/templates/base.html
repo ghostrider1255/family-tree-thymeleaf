@@ -6,9 +6,9 @@ xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 	<title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Base</title>
 	<meta name="description" content="" />
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	<div th:replace="header :: header-css" ></div>
+	<th:block th:replace="header :: header-css" ></th:block>
 		<link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui-1.10.2.custom.css}" />
-	<div th:replace="familytree :: family-tree-css" ></div>
+	<th:block th:replace="familytree :: family-tree-css" ></th:block>
 		
 <style>
 .pagination-centered {

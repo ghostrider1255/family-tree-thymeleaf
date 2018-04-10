@@ -23,6 +23,7 @@ import com.javasree.spring.familytree.web.utils.TreeUtils;
 public class ProfileDaoImpl implements ProfileDao{
 
 	private static final Logger logger = LoggerFactory.getLogger(ProfileDaoImpl.class);
+	
 	@Autowired
 	private ProfileRepository profileRepository;
 	
@@ -190,7 +191,9 @@ public class ProfileDaoImpl implements ProfileDao{
 					event = getIfEvent(profile.getMarriageAnniversary(), profile.getProfileName());
 					if(event !=null){
 						String lifePartnersName = partnersMap.get(profile.getProfileId());
-						event.setNote(profile.getProfileName() +" &" + lifePartnersName +"'s MARRIAGE annivesary");
+						String eventNoteMessage = lifePartnersName!=null ?  (profile.getProfileName() +" &" + lifePartnersName +"'s MARRIAGE annivesary") : 
+							(profile.getProfileName() +"'s MARRIAGE annivesary");
+						event.setNote(eventNoteMessage);
 						events.add(event);
 					}
 				}
@@ -207,7 +210,6 @@ public class ProfileDaoImpl implements ProfileDao{
 		if(eventDate !=null && TreeUtils.isEvent((Date)eventDate.clone())){
 			birthDayEvent = new Event();
 			birthDayEvent.setEventDate(TreeUtils.getEvent(eventDate));
-			//birthDayEvent.setNote(personName +" s BIRTHDAY");
 		}
 		return birthDayEvent;
 	}
