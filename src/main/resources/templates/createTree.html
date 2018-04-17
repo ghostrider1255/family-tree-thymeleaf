@@ -3,31 +3,30 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <title>Create Family Tree</title>
-	<div th:replace="header :: header-css" ></div>
+	<th:block th:replace="header :: header-css" ></th:block>
 	<link rel="stylesheet" type="text/css" th:href="@{/css/jquery-ui-1.10.2.custom.css}" />
 </head>
 <body>
 	<div th:replace="header :: empty-header" ></div>
 		<div class="container tabs-wrap">
-  <ul class="nav nav-tabs" role="tablist">
-    <li class="active" role="presentation">
-      <a role="tab" aria-expanded="true" aria-controls="billing" href="#billing" data-toggle="tab">Family Tree</a>
-    </li>
-    <li>
-      <a role="tab" aria-expanded="false" aria-controls="shipping" href="#shipping" data-toggle="tab">Root Parent</a>
-    </li>
-  </ul>
+  			<ul class="nav nav-tabs" role="tablist">
+			    <li class="active" role="presentation">
+			      <a role="tab" aria-expanded="true" aria-controls="billing" href="#billing" data-toggle="tab">Family Tree</a>
+			    </li>
+			    <li>
+			      <a role="tab" aria-expanded="false" aria-controls="shipping" href="#shipping" data-toggle="tab">Root Parent</a>
+			    </li>
+			</ul>
 
-
-<form action="/familytree/savetree" th:action="@{/familytree/savetree}" th:object="${familyTree}" method="post">
-	<div class="tab-content">
-		<div class="tab-pane active" id="billing" role="tabpanel">
-	    	<h3>Family Tree Name</h3>
-    		<input type="text" id="in_familyTreeName" th:field="*{familyTreeName}"/>
-	    	<a class="btn btn-primary continue">Continue</a>
-	  	</div>
-	  	<div class="tab-pane" id="shipping" role="tabpanel">
-	    	<h3>Root Parent Profile</h3>
+		<form action="/familytree/savetree" th:action="@{/familytree/savetree}" th:object="${familyTree}" method="post">
+		<div class="tab-content">
+			<div class="tab-pane active" id="billing" role="tabpanel">
+		    	<h3>Family Tree Name</h3>
+	    		<input type="text" id="in_familyTreeName" th:field="*{familyTreeName}"/>
+		    	<a class="btn btn-primary continue">Continue</a>
+		  	</div>
+	  		<div class="tab-pane" id="shipping" role="tabpanel">
+		    	<h3>Root Parent Profile</h3>
 	    		<table>
 					<tr>
 						<td>

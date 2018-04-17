@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.model.Profile;
 
 @Repository
 public interface ProfileRepository extends JpaRepository<Profile, Long>{

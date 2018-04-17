@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Add Life Partner Form</title>
+	<th:block th:replace="header :: header-css" />
+	<th:block th:replace="familytree :: family-tree-css" />
+</head>
+<body>
+	<div th:replace="header :: empty-header" ></div>
+	
+	<div>
+		<form action="/familytree/importTree" th:action="@{/familytree/importTree}" method="post" enctype="multipart/form-data">
+		<table>
+			<tr>
+				<td>
+				</td>
+				<td>
+					<input type="file" id="importBrowse" name="file"></input>
+				</td> 
+			</tr>
+			<tr>
+				<td>
+					<input type="Submit" id="submit" value="submit"/>
+				</td>
+				<td>
+					<input type="button" id="cancel" value="cancel"/>
+				</td>
+			</tr>
+		</table>  
+	</form>
+	</div>	
+</body>
+</html>

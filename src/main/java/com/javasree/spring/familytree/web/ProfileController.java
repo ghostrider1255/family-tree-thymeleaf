@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.javasree.spring.familytree.model.profile.CustomeProfile;
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.model.Profile;
+import com.javasree.spring.familytree.web.dto.CustomeProfile;
 import com.javasree.spring.familytree.web.dto.ResponseDto;
 import com.javasree.spring.familytree.web.dto.TreeNode;
 import com.javasree.spring.familytree.web.service.ProfileService;
@@ -57,12 +57,12 @@ public class ProfileController {
 	public ResponseDto saveProfile(@PathVariable("familyTreeId") String familyTreeId, @RequestBody Profile profile
 			, BindingResult result,Model model){
 		
-		Profile newProfile = profileService.save(profile);
+		Profile newProfile = profileService.save(this.getValidatedProfile(profile));
 		model.addAttribute("profile", newProfile);
 		ResponseDto response = new ResponseDto();
 		response.setMsg("success");
 		response.setCode("200");
-		Profile rootParentProfile = profileService.getPraent(newProfile);
+		Profile rootParentProfile = profileService.getRootPraent(newProfile);
 		response.setObject(getTreeNodes(rootParentProfile.getProfileId()));
 		logger.debug("new member profile created with profile ID:"+newProfile.getProfileName());
 		return response;
@@ -78,18 +78,18 @@ public class ProfileController {
 		if(profileId!=null && profileId.trim().length()>0){
 			Optional<Profile> profileToBeDeleted = profileService.findProfile(Long.parseLong(profileId));
 			if(profileToBeDeleted.isPresent()){
-				Profile rootParentProfile = profileService.getPraent(profileToBeDeleted.get());
+				Profile rootParentProfile = profileService.getRootPraent(profileToBeDeleted.get());
 				profileService.delete(profileToBeDeleted.get().getProfileId());
 				response.setMsg("success");
 				response.setCode("200");
 				response.setObject(getTreeNodes(rootParentProfile.getProfileId()));
-				logger.debug("deleting member with profile ID:"+profileId);
+				logger.debug("deleting member with profile ID:{}",profileId);
 			}
 		}
 		else{
 			response.setCode("400");
 			response.setMsg("error deleting member with profile ID:"+profileId);
-			logger.debug("error deleting member with profile ID:"+profileId);
+			logger.debug("error deleting member with profile ID:{}",profileId);
 		}
 		return response;
 	}
@@ -101,12 +101,7 @@ public class ProfileController {
 		Optional<Profile> optioanlParentPartner = profileService.findProfile(lifePartner.getParentId());
 		if(optioanlParentPartner.isPresent()){
 			Profile parentPartner = optioanlParentPartner.get();
-			if("MALE".equalsIgnoreCase(parentPartner.getGender())){
-				lifePartner.setGender("female");
-			}
-			else{
-				lifePartner.setGender("male");
-			}
+			lifePartner.setGender(this.getLifePartnerGender(parentPartner.getGender()));
 			lifePartner.setMaritalStatus(parentPartner.getMaritalStatus());
 			lifePartner.setMarriageAnniversary(parentPartner.getMarriageAnniversary());
 			lifePartner.setLifePartner(true);
@@ -165,7 +160,7 @@ public class ProfileController {
 				Profile lifePartner = null;
 				if(custProf.getLifePartnerId() == null){
 					lifePartner = new Profile();
-					lifePartner.setParentId(custProf.getProfileId());
+					lifePartner.setParentId(custProf.getCustomeProfileId());
 					lifePartner.setLifePartner(true);
 					model.addAttribute("lifePartner", lifePartner);
 					
@@ -192,16 +187,57 @@ public class ProfileController {
 			nodes.add(parentNode);
 		}
 		
-		List<Profile> children = profileService.findByParentId(parentNodeId);
-		if(children != null && !children.isEmpty()){
-			children.forEach( childProfile -> {
-				if(profileService.existsByParentId(childProfile.getProfileId())){
-					nodes.addAll(getTreeNodes(childProfile.getProfileId()));
+		List<Profile> dependents = profileService.findDependents(parentNodeId);
+		if(dependents != null && !dependents.isEmpty()){
+			dependents.forEach( dependentProfile -> {
+				if(profileService.isHavingDependents(dependentProfile.getProfileId())){
+					nodes.addAll(getTreeNodes(dependentProfile.getProfileId()));
 				}
-				TreeNode node = TreeUtils.getTreeNodeFromProfile(childProfile);
+				TreeNode node = TreeUtils.getTreeNodeFromProfile(dependentProfile);
 				nodes.add(node);
 			});
 		}
 		return nodes;
+	}
+	
+	private Profile getValidatedProfile(Profile profile){
+		if(profile!=null && !profile.isLifePartner()){
+			Optional<Profile> optLifePartner = profileService.findLifePartner(profile.getProfileId());
+			if(optLifePartner.isPresent()){
+				updateCorrespondingPartner(profile, optLifePartner.get());
+			}
+		}
+		else if(profile!=null && profile.isLifePartner()){
+			Optional<Profile> optLifePartner = profileService.findProfile(profile.getParentId());
+			if(optLifePartner.isPresent()){
+				updateCorrespondingPartner(profile, optLifePartner.get());
+			}
+		}
+		return profile ; 
+	}
+	
+	private void updateCorrespondingPartner(Profile parentProfile, Profile lifePartnerProfile){
+
+		lifePartnerProfile.setGender(getLifePartnerGender(parentProfile.getGender()));
+		if(parentProfile.getDateOfDeath()!=null){
+			lifePartnerProfile.setMaritalStatus("widow");
+		}
+		else{
+			lifePartnerProfile.setMaritalStatus("married");
+		}
+		if(!parentProfile.isLifePartner()){
+			lifePartnerProfile.setMarriageAnniversary(parentProfile.getMarriageAnniversary());
+		}
+		
+		profileService.save(lifePartnerProfile);
+	}
+	
+	private String getLifePartnerGender(String gender){
+		if("MALE".equalsIgnoreCase(gender)){
+			return "female";
+		}
+		else{
+			return "male";
+		}
 	}
 }

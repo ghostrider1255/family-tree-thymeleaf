@@ -10,6 +10,9 @@ public class URLConstant {
 	public static final String UPDATE_TREE = FAMILY_TREE + "/"+ FAMILY_TREE_ID + "/update";
 	public static final String DELETE_TREE = FAMILY_TREE + "/"+ FAMILY_TREE_ID + "/delete";
 	public static final String TREE_EVENTS = FAMILY_TREE + "/"+ FAMILY_TREE_ID + "/events";
+	public static final String EXPORT_TREE_AS_JSON = FAMILY_TREE + "/"+ FAMILY_TREE_ID + "/downloadJson";
+	public static final String DOWNLOAD_TREE_PAGE = FAMILY_TREE + "/importTreePage";
+	public static final String IMPORT_TREE = FAMILY_TREE + "/importTree";
 	
 	private static final String PROFILE_ID = "{profileId}";
 	public static final String PROFILE_URL = FAMILY_TREE + "/" + FAMILY_TREE_ID + "/profile";
@@ -23,7 +26,6 @@ public class URLConstant {
 	
 	public static final String ABOUT_US = "/aboutus";
 	public static final String HOME = "/home";
-	
 	
 	private URLConstant(){
 		super();

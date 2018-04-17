@@ -7,10 +7,10 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.javasree.spring.familytree.model.CustomeEventCalendar;
-import com.javasree.spring.familytree.model.profile.CustomeProfile;
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.model.Profile;
 import com.javasree.spring.familytree.web.dao.impl.ProfileDaoImpl;
+import com.javasree.spring.familytree.web.dto.CustomeEventCalendar;
+import com.javasree.spring.familytree.web.dto.CustomeProfile;
 import com.javasree.spring.familytree.web.service.ProfileService;
 
 @Service
@@ -35,13 +35,13 @@ public class ProfileServiceImpl implements ProfileService{
 	}
 
 	@Override
-	public List<Profile> findByParentId(Long parentId) {
-		return profileDao.findByParentId(parentId);
+	public List<Profile> findDependents(Long parentId) {
+		return profileDao.findDependents(parentId);
 	}
 
 	@Override
-	public boolean existsByParentId(Long parentId) {
-		return profileDao.existsByParentId(parentId);
+	public boolean isHavingDependents(Long parentId) {
+		return profileDao.isHavingDependents(parentId);
 	}
 
 	@Override
@@ -50,8 +50,8 @@ public class ProfileServiceImpl implements ProfileService{
 	}
 
 	@Override
-	public Profile getPraent(Profile currentProfile) {
-		return profileDao.getPraent(currentProfile);
+	public Profile getRootPraent(Profile currentProfile) {
+		return profileDao.getRootPraent(currentProfile);
 	}
 
 	@Override
@@ -60,14 +60,22 @@ public class ProfileServiceImpl implements ProfileService{
 	}
 
 	@Override
-	public List<Profile> findAllChildren(Long profileId) {
-		return profileDao.findAllChildren(profileId);
+	public List<Profile> findAllDependents(Long profileId) {
+		return profileDao.findAllDependents(profileId);
 	}
 
 	@Override
 	public CustomeEventCalendar getCustomeEventCalender(List<Profile> profiles,Map<Long,String> partnersMap) {
 		return profileDao.getCustomeEventCalender(profiles,partnersMap);
 	}
-	
-	
+
+	@Override
+	public Optional<Profile> findLifePartner(Long parentProfileId) {
+		return profileDao.findLifePartner(parentProfileId);
+	}
+
+	@Override
+	public List<Profile> findChildren(Long parentProfileId) {
+		return profileDao.findChildren(parentProfileId);
+	}
 }

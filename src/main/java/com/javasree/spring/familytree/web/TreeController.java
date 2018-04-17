@@ -1,13 +1,20 @@
 package com.javasree.spring.familytree.web;
 
-
 import static com.javasree.spring.familytree.web.utils.URLConstant.CREATE_TREE_FORM;
 import static com.javasree.spring.familytree.web.utils.URLConstant.SAVE_TREE;
 import static com.javasree.spring.familytree.web.utils.URLConstant.VIEW_TREE;
+import static com.javasree.spring.familytree.web.utils.URLConstant.HOME;
+import static com.javasree.spring.familytree.web.utils.URLConstant.EXPORT_TREE_AS_JSON;
+import static com.javasree.spring.familytree.web.utils.URLConstant.DOWNLOAD_TREE_PAGE;
+import static com.javasree.spring.familytree.web.utils.URLConstant.IMPORT_TREE;
 
+import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,12 +26,15 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.javasree.spring.familytree.model.profile.CustomeProfile;
-import com.javasree.spring.familytree.model.profile.FamilyTree;
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.model.FamilyTree;
+import com.javasree.spring.familytree.model.Profile;
+import com.javasree.spring.familytree.web.dto.CustomeProfile;
+import com.javasree.spring.familytree.web.dto.FamilyTreeJSON;
 import com.javasree.spring.familytree.web.dto.TreeNode;
 import com.javasree.spring.familytree.web.service.FamilyTreeService;
 import com.javasree.spring.familytree.web.service.ProfileService;
@@ -76,6 +86,48 @@ public class TreeController {
 		}
 		return "/viewfulltree";
 	}
+
+	@GetMapping(value = EXPORT_TREE_AS_JSON)
+	public void downloadFamilyTree(@PathVariable("familyTreeId") String familyTreeId,HttpServletResponse response) throws IOException{
+		Optional<FamilyTree> optFamilyTree = familyTreeService.findFamilyTree(Long.valueOf(familyTreeId));
+		if(optFamilyTree.isPresent()){
+			String familyTreeFileName = optFamilyTree.get().getFamilyTreeName() + ".json";
+			familyTreeFileName = familyTreeFileName.replace(" ", "_");
+			response.setContentType("application/json");
+			response.setHeader("Content-Disposition", "attachment;filename=" + familyTreeFileName);
+			String familyTreeAsJsonString = familyTreeService.exportTreeAsString(Long.valueOf(familyTreeId));
+			BufferedOutputStream outStream = new BufferedOutputStream(response.getOutputStream());
+			outStream.write(familyTreeAsJsonString.getBytes());
+			outStream.flush();
+			outStream.close();
+		}
+	}
+	
+	@GetMapping(value = DOWNLOAD_TREE_PAGE)
+	public String initializeImport( Model model){
+		return "importTreePage";
+	}
+	
+	@PostMapping(value = IMPORT_TREE , headers=("content-type=multipart/*"))
+	public String importTree(@RequestParam("file") MultipartFile file, Model model){
+		try {
+			if(!file.isEmpty()){
+				byte[] treeAsBytes = file.getBytes();
+				String familyTreeJsonString = new String(treeAsBytes);
+				FamilyTreeJSON familyTreeJson = TreeUtils.jsonStringToObject(familyTreeJsonString);
+				if(familyTreeJson!=null){
+					familyTreeService.save(familyTreeJson.getFamilyTree());
+					familyTreeJson.getProfiles().forEach( profile -> {
+						profileService.save(profile);
+					});
+				}
+			}
+		} 
+		catch (IOException e) {
+			logger.warn(e.getMessage());
+		}
+		return "redirect:"+HOME;
+	}
 	
 	private List<TreeNode> getTreeNodes(Long parentNodeId){
 		List<TreeNode> nodes = new ArrayList<>();
@@ -85,13 +137,13 @@ public class TreeController {
 			TreeNode parentNode = TreeUtils.getTreeNodeFromProfile(optParentProfile.get());
 			nodes.add(parentNode);
 			
-			List<Profile> children = profileService.findByParentId(parentNodeId);
-			if(children != null && !children.isEmpty()){
-				children.forEach( childProfile -> {
-					if(profileService.existsByParentId(childProfile.getProfileId())){
-						nodes.addAll(getTreeNodes(childProfile.getProfileId()));
+			List<Profile> dependents = profileService.findDependents(parentNodeId);
+			if(dependents != null && !dependents.isEmpty()){
+				dependents.forEach( dependentProfile -> {
+					if(profileService.isHavingDependents(dependentProfile.getProfileId())){
+						nodes.addAll(getTreeNodes(dependentProfile.getProfileId()));
 					}
-					TreeNode node = TreeUtils.getTreeNodeFromProfile(childProfile);
+					TreeNode node = TreeUtils.getTreeNodeFromProfile(dependentProfile);
 					nodes.add(node);
 				});
 			}

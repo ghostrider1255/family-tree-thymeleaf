@@ -33,12 +33,13 @@
 <div th:fragment="family-tree">
 <div class="container-fluid">
 		<div class="row" id="treePluscustProf">
-			<div class="col-md-8 col-lg-8 nopadding">
+			<div class="col-md-8 col-lg-8 nopadding" id="treeId">
 				<div id="btn70">70%</div>
 				<div id="btn80">80%</div>
 				<div id="btn100">100%</div>
 				<div id="btn130">130%</div>
-				<div id="orgdiagram"  style="height: 480px; overflow: hidden; border-style: dotted; border-width: 1px;"></div>
+				<div id="toggle">Show/Hide</div>
+				<div id="orgdiagram"  style="height: 530px; overflow: hidden; border-style: dotted; border-width: 1px;"></div>
 			</div>
 			<div class="col-md-4 col-lg-4 nopadding" id="cust_profile_view" th:include="customeProfileView :: cust-profile-view(${customeProfile})">
 				
@@ -63,6 +64,13 @@
 					</td>
 					<td>
 						<input type="hidden" id="in_parentId" th:field="*{parentId}"></input>
+					</td> 
+				</tr>
+				<tr>
+					<td>
+					</td>
+					<td>
+						<input type="hidden" id="in_isLifePartner" th:field="*{lifePartner}"></input>
 					</td> 
 				</tr>
 				<tr>
@@ -129,7 +137,7 @@
 						<select id="in_maritalStatus" th:field="*{maritalStatus}" >
 							<option th:value="single" th:text="Single">Single</option>
 							<option th:value="married" th:text="Married">Married</option>
-							<option th:value="Widow" th:text="Widow">Widow</option>			
+							<option th:value="widow" th:text="Widow">Widow</option>			
 						</select>
 					</td>
 				</tr>
@@ -139,6 +147,18 @@
 						<input size="12" type="text" id="id_mAnniversary" th:field="*{marriageAnniversary}" class="datePicker" />
 					</td>
 				</tr> 
+				<tr>
+					<td>Phone Personal</td>
+					<td>
+						<input size="12" type="text" id="id_phonePersonal" th:field="*{phonePersonal}"  />
+					</td>
+				</tr>
+				<tr>
+					<td>Phone Office</td>
+					<td>
+						<input size="12" type="text" id="id_phoneOffice" th:field="*{phoneOffice}" />
+					</td>
+				</tr>
 			</table>	
 		</form>
 	</div>
@@ -189,7 +209,7 @@ jQuery(document).ready(function () {
 		dateFormat: 'dd-mm-yy'
 	});
 	
-	var rootProfileId = /*[[${customeProfile.profileId}]]*/ '';
+	var rootProfileId = /*[[${customeProfile.customeProfileId}]]*/ '';
 	var familyTreeId = /*[[${familyTreeId}]]*/ '';
 	var custProfileViewUrl=/*[[@{'/familytree/'+${familyTreeId}+'/profile/'}]]*/ '/familytree/0/profile/0/customeProfile';
 	
@@ -213,6 +233,9 @@ jQuery(document).ready(function () {
 	        	profileData.maritalStatus = $("#in_maritalStatus").val();
 	        	profileData.marriageAnniversary = $("#id_mAnniversary").val();
 	        	profileData.profileId = $("#in_profileId").val();
+	        	profileData.lifePartner = $("#in_isLifePartner").val();
+	        	profileData.phonePersonal = $("#id_phonePersonal").val();
+	        	profileData.phoneOffice = $("#id_phoneOffice").val();
 	        	var saveProfileUrl = /*[[@{'/familytree/'+ ${familyTreeId} +'/profile/save'}]]*/ '/familytree/0/profile/save';
 	        	$.ajax({
 					type: "POST",
@@ -334,16 +357,29 @@ jQuery(document).ready(function () {
 					success: function(result){
 						//var profile = JSON.stringify();
 						$("#in_profileId").val(data.context.id);
-						
+						$("#in_isLifePartner").val(result.object.lifePartner);
 						$("#in_profileName").val(result.object.profileName);
 			        	$("#in_firstName").val(result.object.firstName);
 			        	$("#in_lastName").val(result.object.lastName);
+			        	
 			        	$("#in_gender").val(result.object.gender),
 			        	$("#in_parentId").val(result.object.parentId);
 			        	$("#id_dob").val($.datepicker.formatDate('dd-mm-yy',new Date(result.object.dateOfBirth)));
-			        	$("#id_dod").val(result.object.dateOfDeath);
+			        	$("#id_dod").val($.datepicker.formatDate('dd-mm-yy',new Date(result.object.dateOfDeath)));
 			        	$("#in_maritalStatus").val(result.object.maritalStatus);
 			        	$("#id_mAnniversary").val($.datepicker.formatDate('dd-mm-yy',new Date(result.object.marriageAnniversary)));
+			        	$("#id_phoneOffice").val(result.object.phoneOffice);
+			        	$("#id_phonePersonal").val(result.object.phonePersonal);
+			        	alert(result.object.lifePartner);
+			        	if(result.object.lifePartner==true){
+			        		$("#in_gender").parents('tr').hide();
+			        		$("#in_maritalStatus").parents('tr').hide();
+			        	}
+			        	else{
+			        		$("#in_gender").parents('tr').show();
+			        		$("#in_maritalStatus").parents('tr').show();
+			        	}
+			        
 			        	dialog.dialog( "open" );
 						console.log(result);
 					},
@@ -361,6 +397,18 @@ jQuery(document).ready(function () {
 	$("#btn80").button().click(function () { onScale(.8); });
 	$("#btn100").button().click(function () { onScale(1); });
 	$("#btn130").button().click(function () { onScale(1.3); });
+	
+	$("#toggle").button().click(function () {
+		$("#cust_profile_view").toggle("slide");
+		var currentClass = $("#treeId").attr('class');
+		if(currentClass.indexOf('col-md-8')!=-1){
+			$("#treeId").removeClass('col-md-8 col-lg-8').addClass('col-md-12 col-lg-12');
+		}
+		else{
+			$("#treeId").removeClass('col-md-12 col-lg-12').addClass('col-md-8 col-lg-8');
+		}
+				
+	});
 	
 });
 

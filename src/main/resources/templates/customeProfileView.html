@@ -68,7 +68,7 @@
 			                    		<tr>
 			                        		<td>Marital status</td>
 			                        		<td th:text="*{maritalStatus}" colspan="2">Single/Married</td>
-			                        		<td><a href="#" th:href="@{'/familytree/'+${familyTreeId} +'/profile/'+ ${customeProfile.profileId} +'/initLifePartner'}" 
+			                        		<td><a href="#" th:href="@{'/familytree/'+${familyTreeId} +'/profile/'+ ${customeProfile.customeProfileId} +'/initLifePartner'}" 
 			                        		th:if="${{customeProfile.lifePartnerId==null and customeProfile.lifePartner==false}}" >Add Life Partner</a></td>
 			                    		</tr>
 			                    		<tr>
@@ -88,8 +88,8 @@
 			                    <tr>
 			                        <td>Phone Number</td>
 			                        <td colspan="2">
-			                        	123-4567-890(Landline)<br></br>
-			                        	555-4567-890(Mobile)
+			                        	<th:block th:text="*{phoneHome}+' (Personal)'" th:if="${{customeProfile.phoneHome!=null}}"></th:block><br></br>
+			                        	<th:block th:text="*{phoneOffice}+' (Office)'" th:if="${{customeProfile.phoneOffice!=null}}"></th:block>
 			                        </td>
 			                    </tr>
 							</tbody>

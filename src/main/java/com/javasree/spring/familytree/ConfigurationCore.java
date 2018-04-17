@@ -1,7 +1,11 @@
 package com.javasree.spring.familytree;
 
+import javax.servlet.MultipartConfigElement;
+
+import org.springframework.boot.web.servlet.MultipartConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -44,5 +48,18 @@ public class ConfigurationCore implements WebMvcConfigurer{
 		engine.addDialect(new Java8TimeDialect());
 		engine.addDialect(new LayoutDialect());
 		return engine;
+	}
+	
+	@Bean
+	public RestTemplate restTemplate(){
+		return new RestTemplate();
+	}
+	
+	@Bean
+	public MultipartConfigElement multipartConfigElement(){
+		MultipartConfigFactory multipartFactory = new MultipartConfigFactory();
+		multipartFactory.setMaxFileSize("50MB");
+		multipartFactory.setMaxRequestSize("50MB");
+		return multipartFactory.createMultipartConfig();
 	}
 }

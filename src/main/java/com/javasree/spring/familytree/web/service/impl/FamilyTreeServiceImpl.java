@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.javasree.spring.familytree.model.profile.FamilyTree;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.javasree.spring.familytree.model.FamilyTree;
 import com.javasree.spring.familytree.web.dao.FamilyTreeDao;
 import com.javasree.spring.familytree.web.service.FamilyTreeService;
 
@@ -34,6 +35,11 @@ public class FamilyTreeServiceImpl implements FamilyTreeService{
 	@Override
 	public Iterable<FamilyTree> findAll(Pageable pageble) {
 		return familyTreeDao.findAll(pageble);
+	}
+
+	@Override
+	public String exportTreeAsString(Long familyTreeId) throws JsonProcessingException {
+		return familyTreeDao.exportTreeAsString(familyTreeId);
 	}
 
 }

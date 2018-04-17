@@ -1,6 +1,7 @@
 package com.javasree.spring.familytree.web.dao.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +12,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.javasree.spring.familytree.model.CustomeEventCalendar;
-import com.javasree.spring.familytree.model.Event;
-import com.javasree.spring.familytree.model.profile.CustomeProfile;
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.model.Profile;
 import com.javasree.spring.familytree.web.dao.ProfileDao;
+import com.javasree.spring.familytree.web.dto.CustomeEventCalendar;
+import com.javasree.spring.familytree.web.dto.CustomeProfile;
+import com.javasree.spring.familytree.web.dto.Event;
 import com.javasree.spring.familytree.web.jpa.ProfileRepository;
 import com.javasree.spring.familytree.web.utils.TreeUtils;
 
@@ -28,25 +29,39 @@ public class ProfileDaoImpl implements ProfileDao{
 	private ProfileRepository profileRepository;
 	
 	private static final String STANDARD_UTILS_DATE_FORMAT="yyyyMMdd";
+	private static final String EVENTS_CALENDER_DATE_FORMAT="yyyy-MM-dd";
+	private static final int EVENTS_CALENDER_MONTH_RANGE=1;
 	
 	public ProfileDaoImpl(){
 		super();
 	}
 	
+	/**
+	 * method to save the 'Profile' object into the data base.
+	 * @param: Profile object
+	 */
 	@Override
 	public Profile save(Profile profile) {
 		return profileRepository.save(profile);
 	}
+	
+	/**
+	 * method that returns all the profile present in the data base irrespective of the Tree.
+	 */
 
 	@Override
 	public List<Profile> findAll() {
 		return profileRepository.findAll();
 	}
 
+	/**
+	 * method that delete's the profile and all it's dependent(children and life partner) profiles.
+	 * @param: Long profileId
+	 */
 	@Override
 	public void delete(Long profileId){
-		List<Profile> children = this.findByParentId(profileId);
-		for(Profile profile: children){
+		List<Profile> dependents = this.findDependents(profileId);
+		for(Profile profile: dependents){
 			if(profileRepository.existsByParentId(profile.getProfileId())){
 				this.delete(profile.getProfileId());
 			}
@@ -56,18 +71,44 @@ public class ProfileDaoImpl implements ProfileDao{
 		}
 		profileRepository.deleteById(profileId);
 	}
-
-	public List<Profile> findChildrentByParentId(Long parentId) {
-		return profileRepository.findByParentIdAndLifePartner(parentId, true);
-	}
+	
+	/** 
+	 * finds all the dependents for a profile and returns a list of dependents which has both Life Partner and immediate children(not grand children)
+	 * @param Long 'parentId' parameter which represents the parent Id of the dependents.
+	 * @return List of all profile which belongs to the same Parent Profile.
+	 */
 	
 	@Override
-	public List<Profile> findByParentId(Long parentId) {
+	public List<Profile> findDependents(Long parentId) {
 		return profileRepository.findByParentId(parentId);
 	}
 
+	/**
+	 * method that takes a Long parameter that represent the 'parentId' and returns 'Profile' object if
+	 * the corresponding 'LifePartner' exists.
+	 * @param Long: parentId
+	 * @return 'Profile' object of the LifePartner record.
+	 */
 	@Override
-	public boolean existsByParentId(Long parentId) {
+	public Optional<Profile> findLifePartner(Long parentProfileId) {
+		List<Profile> profiles = profileRepository.findByParentIdAndLifePartner(parentProfileId, true);
+		if(profiles!=null && !profiles.isEmpty()){
+			Optional<Profile> optLifePartner = Optional.of(profiles.get(0));
+			return optLifePartner;
+		}
+		else{
+			return Optional.empty();
+		}
+	}
+
+	@Override
+	public List<Profile> findChildren(Long parentProfileId) {
+		return profileRepository.findByParentIdAndLifePartner(parentProfileId, false);
+	}
+	
+	
+	@Override
+	public boolean isHavingDependents(Long parentId) {
 		return profileRepository.existsByParentId(parentId);
 	}
 
@@ -77,17 +118,17 @@ public class ProfileDaoImpl implements ProfileDao{
 	}
 
 	@Override
-	public List<Profile> findAllChildren(Long profileId){
+	public List<Profile> findAllDependents(Long profileId){
 		List<Profile> childrenList = new ArrayList<>();
 		if(profileId != null){
 			Optional<Profile> currentProfile = this.findProfile(profileId);
-			List<Profile> children = this.findByParentId(profileId);
-			for(Profile child: children){
-				if(profileRepository.existsByParentId(child.getProfileId())){
-					childrenList.addAll(findAllChildren(child.getProfileId()));
+			List<Profile> dependents = this.findDependents(profileId);
+			for(Profile dependent: dependents){
+				if(profileRepository.existsByParentId(dependent.getProfileId())){
+					childrenList.addAll(findAllDependents(dependent.getProfileId()));
 				}
 				else{
-					childrenList.add(child);
+					childrenList.add(dependent);
 				}
 			}
 			if(currentProfile.isPresent())
@@ -98,12 +139,12 @@ public class ProfileDaoImpl implements ProfileDao{
 	
 	
 	@Override
-	public Profile getPraent(Profile currentProfile) {
+	public Profile getRootPraent(Profile currentProfile) {
 		Profile parentProfile = null;
 		if(currentProfile!=null && currentProfile.getParentId()!=null){
 			Profile currentParentProfile = profileRepository.getOne(currentProfile.getParentId());
 			if(currentParentProfile!=null){
-				parentProfile = this.getPraent(currentParentProfile);
+				parentProfile = this.getRootPraent(currentParentProfile);
 			}
 		}
 		else{
@@ -118,13 +159,15 @@ public class ProfileDaoImpl implements ProfileDao{
 	@Override
 	public CustomeProfile getCustomeProfile(Profile profile){
 		CustomeProfile customeProfile = new CustomeProfile();
-		customeProfile.setProfileId(profile.getProfileId());
+		customeProfile.setCustomeProfileId(profile.getProfileId());
 		customeProfile.setProfileName(profile.getProfileName());
 		customeProfile.setFirstName(profile.getFirstName());
 		customeProfile.setLastName(profile.getLastName());
 		customeProfile.setDateOfBirth(profile.getDateOfBirth());
 		customeProfile.setGender(profile.getGender());
 		customeProfile.setAge(Long.valueOf(TreeUtils.getAge(profile.getDateOfBirth())));
+		customeProfile.setPhoneHome(profile.getPhonePersonal());
+		customeProfile.setPhoneOffice(profile.getPhoneOffice());
 		
 		customeProfile.setMaritalStatus(profile.getMaritalStatus().toUpperCase());
 		if(!profile.getMaritalStatus().equalsIgnoreCase("single")){
@@ -165,30 +208,30 @@ public class ProfileDaoImpl implements ProfileDao{
 		try {
 			String todayDateAsString = TreeUtils.convertDateToString(todayDate, STANDARD_UTILS_DATE_FORMAT); //default date for the event calender
 			String currentMonthStartDate = TreeUtils.computeMonthStartDate(todayDateAsString); //make current months 1st as the min date
-			Date minDate = TreeUtils.rangeDate(currentMonthStartDate, STANDARD_UTILS_DATE_FORMAT, -1);
+			Date minDate = TreeUtils.rangeDate(currentMonthStartDate, STANDARD_UTILS_DATE_FORMAT, -EVENTS_CALENDER_MONTH_RANGE);
 			String minDateString = TreeUtils.convertDateToString(minDate, STANDARD_UTILS_DATE_FORMAT);
 			String currentMonthEndDate = TreeUtils.computeEndDate(currentMonthStartDate);
-			Date maxDate = TreeUtils.rangeDate(currentMonthEndDate, STANDARD_UTILS_DATE_FORMAT, 1);//make current month end date as the maxdate
+			Date maxDate = TreeUtils.rangeDate(currentMonthEndDate, STANDARD_UTILS_DATE_FORMAT, EVENTS_CALENDER_MONTH_RANGE);//make current month end date as the maxdate
 			String maxDateString = TreeUtils.convertDateToString(maxDate, STANDARD_UTILS_DATE_FORMAT);
 			
-			eventsCalender.setDefaultDate(TreeUtils.convertDateFormat(todayDateAsString, STANDARD_UTILS_DATE_FORMAT, "yyyy-MM-dd"));
-			eventsCalender.setMinDate(TreeUtils.convertDateFormat(minDateString, STANDARD_UTILS_DATE_FORMAT, "yyyy-MM-dd"));
-			eventsCalender.setMaxDate(TreeUtils.convertDateFormat(maxDateString, STANDARD_UTILS_DATE_FORMAT, "yyyy-MM-dd"));
+			eventsCalender.setDefaultDate(TreeUtils.convertDateFormat(todayDateAsString, STANDARD_UTILS_DATE_FORMAT, EVENTS_CALENDER_DATE_FORMAT));
+			eventsCalender.setMinDate(TreeUtils.convertDateFormat(minDateString, STANDARD_UTILS_DATE_FORMAT, EVENTS_CALENDER_DATE_FORMAT));
+			eventsCalender.setMaxDate(TreeUtils.convertDateFormat(maxDateString, STANDARD_UTILS_DATE_FORMAT, EVENTS_CALENDER_DATE_FORMAT));
 			List<Event> events = new ArrayList<>();
 			for (Profile profile : profiles) {
 				
-				Event event = getIfEvent(profile.getDateOfBirth(), profile.getProfileName());
+				Event event = getIfEvent(profile.getDateOfBirth());
 				if(event !=null){
 					event.setNote(profile.getProfileName() +"'s BIRTHDAY");
 					events.add(event);
 				}
-				event = getIfEvent(profile.getDateOfDeath(), profile.getProfileName());
+				event = getIfEvent(profile.getDateOfDeath());
 				if(event !=null){
 					event.setNote(profile.getProfileName() +"'s DEATH annivesary");
 					events.add(event);
 				}
 				if(!profile.isLifePartner()){
-					event = getIfEvent(profile.getMarriageAnniversary(), profile.getProfileName());
+					event = getIfEvent(profile.getMarriageAnniversary());
 					if(event !=null){
 						String lifePartnersName = partnersMap.get(profile.getProfileId());
 						String eventNoteMessage = lifePartnersName!=null ?  (profile.getProfileName() +" &" + lifePartnersName +"'s MARRIAGE annivesary") : 
@@ -198,6 +241,11 @@ public class ProfileDaoImpl implements ProfileDao{
 					}
 				}
 			}
+			Collections.sort(events,(Event eventOne,Event eventTwo) -> {
+				String eventOneDate = eventOne.getEventDate().toString();
+				String eventTwoDate = eventTwo.getEventDate().toString();
+				return eventOneDate.compareTo(eventTwoDate);
+			});
 			eventsCalender.setEvents(events);
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
@@ -205,7 +253,7 @@ public class ProfileDaoImpl implements ProfileDao{
 		return eventsCalender;
 	}
 	
-	private Event getIfEvent(Date eventDate, String personName){
+	private Event getIfEvent(Date eventDate){
 		Event birthDayEvent = null;
 		if(eventDate !=null && TreeUtils.isEvent((Date)eventDate.clone())){
 			birthDayEvent = new Event();
@@ -213,4 +261,5 @@ public class ProfileDaoImpl implements ProfileDao{
 		}
 		return birthDayEvent;
 	}
+
 }

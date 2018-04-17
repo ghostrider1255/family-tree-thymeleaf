@@ -66,6 +66,10 @@
 		<appender-ref ref="springAppender"/>
 	</logger>
 	
+	<logger name="org.apache" level="WARN" additivity="false">
+		<appender-ref ref="springAppender"/>
+	</logger>
+	
 	<logger name="org.hibernate" level="WARN" additivity="false">
 		<appender-ref ref="hibernateAppender"/>
 	</logger>

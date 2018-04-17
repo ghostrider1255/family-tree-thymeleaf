@@ -31,6 +31,7 @@
             <div id="navbar" class="collapse navbar-collapse">
             	<ul class="nav navbar-nav">
             		<li><a th:href="@{/familytree/createtreeform}">Create new Tree</a></li>
+            		<li><a th:href="@{/familytree/importTreePage}">Import Tree</a></li>
             	</ul>
             </div>
 		</div>
@@ -47,6 +48,7 @@
                 <ul class="nav navbar-nav">
                 	<li><a th:href="@{'/familytree/' + ${familyTreeId} +'/view'}">Tree</a></li>
                     <li><a th:href="@{'/familytree/' + ${familyTreeId} +'/events'}">Event Calendar</a></li>
+                    <li><a th:href="@{'/familytree/' + ${familyTreeId} +'/downloadJson'}">Export</a></li>
                     <li><a th:href="@{/aboutus}">About Us</a></li>
                 </ul>
             </div>

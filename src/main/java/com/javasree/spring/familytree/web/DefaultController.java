@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.javasree.spring.familytree.model.CustomeEventCalendar;
-import com.javasree.spring.familytree.model.profile.FamilyTree;
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.model.FamilyTree;
+import com.javasree.spring.familytree.model.Profile;
+import com.javasree.spring.familytree.web.dto.CustomeEventCalendar;
 import com.javasree.spring.familytree.web.dto.PagerDto;
 import com.javasree.spring.familytree.web.service.FamilyTreeService;
 import com.javasree.spring.familytree.web.service.ProfileService;
@@ -76,7 +76,7 @@ public class DefaultController {
 		Optional<FamilyTree> optCurrentFamilyTree = familyTreeService.findFamilyTree(Long.valueOf(familyTreeId));
 		if(optCurrentFamilyTree.isPresent()){
 			FamilyTree currentFamilyTree = optCurrentFamilyTree.get();
-			List<Profile> profilesForEvents = profileService.findAllChildren(currentFamilyTree.getProfile().getProfileId());
+			List<Profile> profilesForEvents = profileService.findAllDependents(currentFamilyTree.getProfile().getProfileId());
 			Map<Long,String> partnersProfileMap = this.pullPartnersMap(profilesForEvents);
 			CustomeEventCalendar events= profileService.getCustomeEventCalender(profilesForEvents,partnersProfileMap);
 			model.addAttribute("eventsCalender", events);

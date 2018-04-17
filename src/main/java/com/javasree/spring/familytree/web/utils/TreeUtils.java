@@ -1,5 +1,7 @@
 package com.javasree.spring.familytree.web.utils;
 
+import java.io.IOException;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -10,12 +12,20 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.javasree.spring.familytree.model.Profile;
+import com.javasree.spring.familytree.web.dto.FamilyTreeJSON;
 import com.javasree.spring.familytree.web.dto.TreeNode;
 
 public class TreeUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(TreeUtils.class);
+	
+	private static final String STANDARD_DATE_FORMAT = "yyyyMMdd";
+	
+	private static ObjectMapper objectMapper = new ObjectMapper();
 	
 	private TreeUtils(){
 		super();
@@ -23,12 +33,11 @@ public class TreeUtils {
 	public static TreeNode getTreeNodeFromProfile(Profile profile){
 		TreeNode node = new TreeNode();
 		node.setId(profile.getProfileId());
-		node.setTitle(profile.getFirstName());
-		node.setDescription(profile.getProfileName());
+		node.setTitle(profile.getProfileName());
+		node.setDescription(profile.getFirstName());
 		node.setParent(profile.getParentId());
 		node.setGender(profile.getGender());
 		node.setLifePartner(profile.isLifePartner());
-		//node.setLifePartner(false);
 		node.setStatus(profile.getMaritalStatus().toUpperCase());
 		return node;
 	}
@@ -39,9 +48,7 @@ public class TreeUtils {
 			Calendar currentDate = Calendar.getInstance();
 			Calendar birthDate = Calendar.getInstance();
 			birthDate.setTime(dateOfBirth);
-			/*if(dateOfBirth.after(currentDate.getTime())){
-				throw new IllegalArgumentException("Can not born in future");
-			}*/
+			
 			int currentYear = currentDate.get(Calendar.YEAR);
 			int birthYear = birthDate.get(Calendar.YEAR);
 			age = currentYear - birthYear;
@@ -88,17 +95,17 @@ public class TreeUtils {
 	}
 	
 	@SuppressWarnings("deprecation")
-	public static String computeEndDate(String p_BillDateStr) throws Exception
+	public static String computeEndDate(String billDateStr) throws Exception
 	{
 		Date d1 = null;
-		SimpleDateFormat p_simpleDate = new SimpleDateFormat("yyyyMMdd");
-		Date d = p_simpleDate.parse(p_BillDateStr);
+		SimpleDateFormat simpleDate = new SimpleDateFormat(STANDARD_DATE_FORMAT);
+		Date d = simpleDate.parse(billDateStr);
 		d1 = new Date();
 		d1.setYear(d.getYear());
 		d1.setMonth(d.getMonth() + 1);
 		d1.setDate(d.getDate());
 		d1.setDate(d1.getDate() - 1);
-		return p_simpleDate.format(d1);
+		return simpleDate.format(d1);
 	}
 	public static String computeMonthStartDate(String currentDate)
 	{
@@ -106,31 +113,31 @@ public class TreeUtils {
 		Matcher unformattedDateMatcher=datecharPatter.matcher(currentDate);
 		if(currentDate!=null && currentDate.trim().length()>0 && currentDate.trim().length()==8 && unformattedDateMatcher.find())
 		{
-			currentDate=currentDate.substring(0,6)+"01";
+			return currentDate.substring(0,6)+"01";
 		}
 		return currentDate;
 	}
 	@SuppressWarnings("deprecation")
-	public static String computestartDate(String p_BillDateStr) throws Exception
+	public static String computestartDate(String billDateStr) throws Exception
 	{
 		Date d1=null;
-		SimpleDateFormat p_simpleDate=new SimpleDateFormat("yyyyMMdd");
-		Date d=p_simpleDate.parse(p_BillDateStr);
+		SimpleDateFormat simpleDate=new SimpleDateFormat(STANDARD_DATE_FORMAT);
+		Date d=simpleDate.parse(billDateStr);
 		d1=new Date();
 		d1.setYear(d.getYear());
 		d1.setMonth(d.getMonth()-1);
 		d1.setDate(d.getDate());
 		d1.setDate(d1.getDate());
-		return  p_simpleDate.format(d1);
+		return  simpleDate.format(d1);
 	}
 	public static String computePeriodStartDate(String startDate) throws Exception
 	{
 		
 		if (startDate.contains("-"))
 		{
-			Pattern p_p_date = Pattern.compile("[0-9]{4}-[\\d]{2}");
-			  Matcher p_m_date = p_p_date.matcher(startDate);
-			  if (p_m_date.find())
+			Pattern datePattern = Pattern.compile("[0-9]{4}-[\\d]{2}");
+			  Matcher dateMatcher = datePattern.matcher(startDate);
+			  if (dateMatcher.find())
 			  {
 				  startDate = startDate.substring(startDate.indexOf("-")+1)+"-01-"+startDate.substring(0,startDate.indexOf("-")); 
 			  }
@@ -193,11 +200,11 @@ public class TreeUtils {
 	public static String getDateString(String dateStr)
 	{
 		int year = 0;
-		Pattern p_pattern =Pattern.compile("[A-Z]+");
+		Pattern pattern =Pattern.compile("[A-Z]+");
 		String dateString = dateStr.trim();
-		SimpleDateFormat simp_date=new SimpleDateFormat("yyyyMMdd");
-		Matcher p_mathces=p_pattern.matcher(dateString.toUpperCase());
-		if(!p_mathces.find())
+		SimpleDateFormat simp_date=new SimpleDateFormat(STANDARD_DATE_FORMAT);
+		Matcher mathces=pattern.matcher(dateString.toUpperCase());
+		if(!mathces.find())
 		{
 			while(dateString.indexOf(".")!=-1)
 				dateString= dateString.replace("."," ").trim();
@@ -231,16 +238,16 @@ public class TreeUtils {
 			try {
 				int eventRangeInMonths = 1;
 				Date todayDate = new Date();
-				String currentMonthStartdate = computeMonthStartDate(convertDateToString(todayDate, "yyyyMMdd"));
-				Date currentMonth = convertToDate(currentMonthStartdate, "yyyyMMdd");
+				String currentMonthStartdate = computeMonthStartDate(convertDateToString(todayDate, STANDARD_DATE_FORMAT));
+				Date currentMonth = convertToDate(currentMonthStartdate, STANDARD_DATE_FORMAT);
 				Date eventRangeMinDate = rangeDate(currentMonth, -eventRangeInMonths);
 				Date eventRangeMaxDate = rangeDate(currentMonth, eventRangeInMonths);
-				String eventMaxEndDate = computeEndDate(convertDateToString(eventRangeMaxDate, "yyyyMMdd"));
-				eventRangeMaxDate = convertToDate(eventMaxEndDate, "yyyyMMdd");
+				String eventMaxEndDate = computeEndDate(convertDateToString(eventRangeMaxDate, STANDARD_DATE_FORMAT));
+				eventRangeMaxDate = convertToDate(eventMaxEndDate, STANDARD_DATE_FORMAT);
 				date.setYear(currentMonth.getYear());
 				return eventRangeMinDate.compareTo(date) * date.compareTo(eventRangeMaxDate) >=0;
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error(e.getMessage());
 				return false;
 			}
 		}
@@ -263,5 +270,15 @@ public class TreeUtils {
 	public static Date rangeDate(String dateString,String dateFormat, int range){
 		Date date = convertToDate(dateString, dateFormat);
 		return rangeDate(date , range);
+	}
+	
+	public static String objectToJsonString(Object object) throws JsonProcessingException{
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		objectMapper.setDateFormat((DateFormat)new SimpleDateFormat("dd-MM-yyyy"));
+		return objectMapper.writeValueAsString(object);
+	}
+	
+	public static FamilyTreeJSON jsonStringToObject(String jsonString) throws IOException{
+		return objectMapper.readValue(jsonString,FamilyTreeJSON.class);
 	}
 }

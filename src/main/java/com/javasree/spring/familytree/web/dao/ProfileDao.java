@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.javasree.spring.familytree.model.CustomeEventCalendar;
-import com.javasree.spring.familytree.model.profile.CustomeProfile;
-import com.javasree.spring.familytree.model.profile.Profile;
+import com.javasree.spring.familytree.model.Profile;
+import com.javasree.spring.familytree.web.dto.CustomeEventCalendar;
+import com.javasree.spring.familytree.web.dto.CustomeProfile;
 
 public interface ProfileDao {
 
@@ -14,17 +14,21 @@ public interface ProfileDao {
 	
 	public List<Profile> findAll();
 	
-	public List<Profile> findAllChildren(Long profileId);
+	public List<Profile> findDependents(Long parentId);
+	
+	public List<Profile> findAllDependents(Long profileId);
 	
 	public Optional<Profile> findProfile(Long profileId);
 	
-	public List<Profile> findByParentId(Long parentId);
+	public Optional<Profile> findLifePartner(Long parentProfileId);
+	
+	public List<Profile> findChildren(Long parentProfileId);
 	
 	public void delete(Long profileId);
 	
-	public boolean existsByParentId(Long parentId);
+	public boolean isHavingDependents(Long parentId);
 	
-	public Profile getPraent(Profile currentProfile);
+	public Profile getRootPraent(Profile currentProfile);
 	
 	public CustomeProfile getCustomeProfile(Profile profile);
 	
